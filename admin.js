@@ -8,10 +8,14 @@ let currentFeedback = [];
 let knownOrderIds = new Set();
 let firstOrderLoad = true;
 let audioContext = null;
+let orderPollingStarted = false;
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
-  "&": "&amp;", "<": "&lt;", ">": "&gt;",
-  '"': "&quot;", "'": "&#39;"
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
 }[c]));
 
 const money = n => Number(n || 0).toLocaleString("en-PK");
@@ -21,7 +25,7 @@ function showMessage(id, message) {
   if (el) el.textContent = message;
 }
 
-// ADMIN SOUND
+// SOUND
 function playOrderSound() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -55,11 +59,11 @@ function playOrderSound() {
       oscillator.stop(audioContext.currentTime + delay + 0.2);
     });
   } catch (err) {
-    console.log("Sound unavailable");
+    console.error("Sound error:", err);
   }
 }
 
-async function notifyNewOrder(order) {
+function notifyNewOrder(order) {
   playOrderSound();
 
   if ("Notification" in window &&
@@ -83,6 +87,7 @@ async function enableNotifications() {
     if (audioContext?.state === "suspended") {
       await audioContext.resume();
     }
+    playOrderSound();
     alert("Notifications enabled.");
   } else {
     alert("Please allow notifications in browser settings.");
@@ -155,8 +160,11 @@ async function loadServices() {
         .update({ is_active: b.dataset.active !== "true" })
         .eq("id", b.dataset.toggle);
 
-      if (error) alert("Service Error: " + error.message);
-      else await loadServices();
+      if (error) {
+        alert("Service Error: " + error.message);
+      } else {
+        await loadServices();
+      }
 
       b.disabled = false;
     };
@@ -173,6 +181,7 @@ async function loadOrders() {
 
   if (error) {
     $("orders-list").textContent = "Orders Error: " + error.message;
+    console.error("Orders error:", error);
     return;
   }
 
@@ -182,14 +191,11 @@ async function loadOrders() {
     o.status === "pending" && !knownOrderIds.has(o.id)
   );
 
-  if (firstOrderLoad) {
-    firstOrderLoad = false;
-  } else {
-    for (const order of newOrders) {
-      await notifyNewOrder(order);
-    }
+  if (!firstOrderLoad) {
+    newOrders.forEach(notifyNewOrder);
   }
 
+  firstOrderLoad = false;
   currentOrders.forEach(o => knownOrderIds.add(o.id));
 
   $("orders-list").innerHTML = currentOrders.map(o => `
@@ -202,12 +208,12 @@ async function loadOrders() {
       <p>Order: <code>${esc(o.id)}</code></p>
       <p>Customer: ${esc(o.customer_name)} · ${esc(o.customer_phone)}</p>
       <p>Sender: ${esc(o.sender_name)} · ${esc(o.sender_phone)}</p>
-      <p>Transaction: ${esc(o.transaction_id)}</p>
+      <p>Transaction ID: ${esc(o.transaction_id)}</p>
       <p>Created: ${new Date(o.created_at).toLocaleString()}</p>
 
       <div class="admin-actions">
         <button class="btn secondary" data-receipt="${esc(o.id)}">
-          View Receipt
+          VIEW RECEIPT
         </button>
 
         ${o.status === "pending" ? `
@@ -238,14 +244,15 @@ async function loadOrders() {
                 placeholder="Paste MediaFire download link">
             </label>
 
-            <button class="btn" data-deliver="${esc(o.id)}">
+            <button type="button" class="btn" data-deliver="${esc(o.id)}">
               DELIVER TO CUSTOMER
             </button>
+            <p data-delivery-message="${esc(o.id)}" class="muted"></p>
           </div>
         ` : ""}
 
         ${o.status === "delivered" ? `
-          <p class="muted">Delivery completed.</p>
+          <p class="muted">DELIVERY COMPLETED</p>
           <p>KEY: ${esc(o.delivery_key || "")}</p>
           <p>NOTE: ${esc(o.admin_note || "")}</p>
           <p>LINK: ${esc(o.delivery_url || "")}</p>
@@ -265,16 +272,23 @@ async function loadOrders() {
 
       b.disabled = true;
 
-      const { error } = await db.from("orders")
-        .update({ status: "approved" })
-        .eq("id", b.dataset.accept)
-        .eq("status", "pending");
+      try {
+        const { data, error } = await db.from("orders")
+          .update({ status: "approved" })
+          .eq("id", b.dataset.accept)
+          .eq("status", "pending")
+          .select("id");
 
-      if (error) {
-        alert("Accept Error: " + error.message);
-        b.disabled = false;
-      } else {
+        if (error) throw error;
+        if (!data?.length) {
+          throw new Error("Order was not updated. Refresh and check its status.");
+        }
+
+        alert("Order accepted.");
         await refresh();
+      } catch (err) {
+        alert("Accept Error: " + err.message);
+        b.disabled = false;
       }
     };
   });
@@ -301,8 +315,11 @@ async function loadOrders() {
         .from("payment-receipts")
         .createSignedUrl(order.receipt_path, 120);
 
-      if (error) alert("Receipt Error: " + error.message);
-      else window.open(data.signedUrl, "_blank", "noopener");
+      if (error) {
+        alert("Receipt Error: " + error.message);
+      } else {
+        window.open(data.signedUrl, "_blank", "noopener");
+      }
     };
   });
 
@@ -310,49 +327,82 @@ async function loadOrders() {
   $("orders-list").querySelectorAll("[data-deliver]").forEach(b => {
     b.onclick = async () => {
       const id = b.dataset.deliver;
-      const note = $(`[data-note="${id}"]`).value.trim();
-      const key = $(`[data-key="${id}"]`).value.trim();
-      const link = $(`[data-link="${id}"]`).value.trim();
-
-      if (!key || !link) {
-        alert("Please enter both KEY and MediaFire download link.");
-        return;
-      }
+      const message = $(`[data-delivery-message="${id}"]`);
 
       try {
-        const parsed = new URL(link);
+        const note = $(`[data-note="${id}"]`)?.value.trim() || "";
+        const key = $(`[data-key="${id}"]`)?.value.trim() || "";
+        const link = $(`[data-link="${id}"]`)?.value.trim() || "";
+
+        if (!key || !link) {
+          alert("Please enter both KEY and MediaFire download link.");
+          return;
+        }
+
+        let parsed;
+
+        try {
+          parsed = new URL(link);
+        } catch {
+          alert("Please enter a valid download link.");
+          return;
+        }
+
         if (parsed.protocol !== "https:") {
           alert("Please enter a valid HTTPS download link.");
           return;
         }
-      } catch {
-        alert("Please enter a valid download link.");
-        return;
-      }
 
-      if (!confirm("Deliver this order to the customer now?")) return;
+        if (!confirm("Deliver this order to the customer now?")) return;
 
-      b.disabled = true;
-      b.textContent = "DELIVERING...";
+        b.disabled = true;
+        b.textContent = "DELIVERING...";
 
-      const { error } = await db.from("orders")
-        .update({
-          status: "delivered",
-          admin_note: note,
-          delivery_key: key,
-          delivery_url: link,
-          delivery_path: null
-        })
-        .eq("id", id)
-        .eq("status", "approved");
+        if (message) message.textContent = "Saving delivery...";
 
-      if (error) {
-        alert("Delivery Error: " + error.message);
+        const { data, error } = await db.from("orders")
+          .update({
+            status: "delivered",
+            admin_note: note,
+            delivery_key: key,
+            delivery_url: link,
+            delivery_path: null
+          })
+          .eq("id", id)
+          .eq("status", "approved")
+          .select("id,status,delivery_key,delivery_url");
+
+        if (error) throw error;
+
+        if (!data?.length) {
+          throw new Error(
+            "No order was updated. Check admin permissions and order status."
+          );
+        }
+
+        if (data[0].status !== "delivered") {
+          throw new Error("Delivery status could not be confirmed.");
+        }
+
+        if (message) {
+          message.textContent = "Delivery saved successfully.";
+        }
+
+        alert("Order delivered successfully. Customer can now track delivery.");
+
+        await refresh();
+
+      } catch (err) {
+        console.error("Delivery error:", err);
+
+        if (message) {
+          message.textContent = "Delivery Error: " + err.message;
+        }
+
+        alert("Delivery Error: " + err.message);
+
         b.disabled = false;
         b.textContent = "DELIVER TO CUSTOMER";
-      } else {
-        alert("Order delivered successfully.");
-        await refresh();
       }
     };
   });
@@ -371,8 +421,9 @@ async function deleteOrder(id) {
     .delete()
     .eq("id", id);
 
-  if (error) alert("Delete Order Error: " + error.message);
-  else {
+  if (error) {
+    alert("Delete Order Error: " + error.message);
+  } else {
     alert("Order deleted.");
     await refresh();
   }
@@ -416,8 +467,9 @@ async function loadFeedback() {
         .delete()
         .eq("id", b.dataset.deleteFeedback);
 
-      if (error) alert("Feedback Delete Error: " + error.message);
-      else {
+      if (error) {
+        alert("Feedback Delete Error: " + error.message);
+      } else {
         alert("Feedback deleted.");
         await loadFeedback();
       }
@@ -447,6 +499,7 @@ $("login-form").onsubmit = async e => {
 // SESSION
 async function checkSession() {
   const { data, error } = await db.auth.getUser();
+
   if (error || !data?.user) return;
 
   $("login-panel").hidden = true;
@@ -457,20 +510,17 @@ async function checkSession() {
     button.id = "notification-enable";
     button.className = "btn secondary";
     button.textContent = "ENABLE NOTIFICATIONS + RINGTONE";
-    button.onclick = enableNotifications;
     $("dashboard").prepend(button);
   }
 
-  // User interaction unlocks sound playback on supported browsers.
-  $("notification-enable").onclick = async () => {
-    await enableNotifications();
-    playOrderSound();
-  };
+  $("notification-enable").onclick = enableNotifications;
 
   await refresh();
 
-  // Poll for new orders while admin panel is open.
-  setInterval(loadOrders, 15000);
+  if (!orderPollingStarted) {
+    orderPollingStarted = true;
+    setInterval(loadOrders, 15000);
+  }
 }
 
 // LOGOUT
