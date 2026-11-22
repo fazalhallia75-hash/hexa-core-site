@@ -1,6 +1,7 @@
 
 const $ = id => document.getElementById(id);
 const db = window.hexaSupabase;
+const cfg = window.HEXA_CONFIG;
 
 let matchedOrder = null;
 
@@ -18,15 +19,13 @@ $("track-form").onsubmit = async e => {
       p_customer_phone: $("track-phone").value.trim()
     });
 
-    if (error || !data || !data.length) {
+    if (error || !data?.length) {
       $("track-message").textContent =
         "Order not found. Check the reference and phone number.";
       return;
     }
 
     matchedOrder = data[0];
-
-    $("track-message").textContent = "";
 
     const box = document.createElement("div");
     box.className = "order-card";
@@ -43,13 +42,56 @@ $("track-form").onsubmit = async e => {
     box.append(title, status, note);
 
     if (matchedOrder.delivery_path) {
-      const message = document.createElement("p");
-      message.textContent = "Your delivery file is ready.";
-      box.append(message);
+      const download = document.createElement("button");
+      download.type = "button";
+      download.className = "btn";
+      download.textContent = "Download Your File";
+
+      download.onclick = async () => {
+        download.disabled = true;
+        download.textContent = "Preparing download...";
+
+        try {
+          const response = await fetch(cfg.CUSTOMER_DELIVERY_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": cfg.SUPABASE_PUBLISHABLE_KEY
+            },
+            body: JSON.stringify({
+              order_id: matchedOrder.id,
+              customer_phone: $("track-phone").value.trim()
+            })
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.download_url) {
+            throw new Error(result.error || "Download unavailable");
+          }
+
+          const link = document.createElement("a");
+          link.href = result.download_url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.textContent = "Open delivery file";
+          box.append(link);
+
+          download.textContent = "Link Ready";
+
+        } catch (err) {
+          download.disabled = false;
+          download.textContent = "Try Download Again";
+          alert(err.message);
+        }
+      };
+
+      box.append(download);
     }
 
     $("order-result").append(box);
     $("feedback-panel").hidden = false;
+    $("track-message").textContent = "";
 
   } catch (err) {
     $("track-message").textContent = "Something went wrong. Please try again.";
@@ -58,7 +100,6 @@ $("track-form").onsubmit = async e => {
 
 $("feedback-form").onsubmit = async e => {
   e.preventDefault();
-
   if (!matchedOrder) return;
 
   $("feedback-message").textContent = "Submitting...";
