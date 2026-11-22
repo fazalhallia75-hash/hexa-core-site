@@ -1,3 +1,83 @@
-const $=id=>document.getElementById(id),db=window.hexaSupabase;let matchedOrder=null;
-$("track-form").onsubmit=async e=>{e.preventDefault();$("track-message").textContent="Checking…";$("order-result").innerHTML="";$("feedback-panel").hidden=true;const {data,error}=await db.rpc("track_customer_order",{p_order_id:$("order-id").value.trim(),p_customer_phone:$("track-phone").value.trim()});if(error||!data||!data.length){$("track-message").textContent="Order not found. Check the reference and phone number.";return;}matchedOrder=data[0];$("track-message").textContent="";const box=document.createElement("div");box.className="order-card";const title=document.createElement("h3");title.textContent=matchedOrder.service_name;const status=document.createElement("p");status.textContent="Status: "+matchedOrder.status;const note=document.createElement("p");note.textContent=matchedOrder.admin_note||"";box.append(title,status,note);if(matchedOrder.delivery_url){const a=document.createElement("a");a.href=matchedOrder.delivery_url;a.textContent="Download your delivery file";a.className="btn";a.target="_blank";a.rel="noopener";box.append(a);} $("order-result").append(box);$("feedback-panel").hidden=false;};
-$("feedback-form").onsubmit=async e=>{e.preventDefault();if(!matchedOrder)return;$("feedback-message").textContent="Submitting…";const {error}=await db.rpc("submit_customer_feedback",{p_order_id:matchedOrder.id,p_customer_phone:$("track-phone").value.trim(),p_message:$("feedback-text").value.trim(),p_rating:Number($("rating").value)});$("feedback-message").textContent=error?error.message:"Thank you. Your feedback was submitted.";if(!error)$("feedback-form").reset();};
+
+const $ = id => document.getElementById(id);
+const db = window.hexaSupabase;
+
+let matchedOrder = null;
+
+$("track-form").onsubmit = async e => {
+  e.preventDefault();
+
+  $("track-message").textContent = "Checking...";
+  $("order-result").innerHTML = "";
+  $("feedback-panel").hidden = true;
+  matchedOrder = null;
+
+  try {
+    const { data, error } = await db.rpc("track_customer_order", {
+      p_order_id: $("order-id").value.trim(),
+      p_customer_phone: $("track-phone").value.trim()
+    });
+
+    if (error || !data || !data.length) {
+      $("track-message").textContent =
+        "Order not found. Check the reference and phone number.";
+      return;
+    }
+
+    matchedOrder = data[0];
+
+    $("track-message").textContent = "";
+
+    const box = document.createElement("div");
+    box.className = "order-card";
+
+    const title = document.createElement("h3");
+    title.textContent = matchedOrder.service_name;
+
+    const status = document.createElement("p");
+    status.textContent = "Status: " + matchedOrder.status;
+
+    const note = document.createElement("p");
+    note.textContent = matchedOrder.admin_note || "";
+
+    box.append(title, status, note);
+
+    if (matchedOrder.delivery_path) {
+      const message = document.createElement("p");
+      message.textContent = "Your delivery file is ready.";
+      box.append(message);
+    }
+
+    $("order-result").append(box);
+    $("feedback-panel").hidden = false;
+
+  } catch (err) {
+    $("track-message").textContent = "Something went wrong. Please try again.";
+  }
+};
+
+$("feedback-form").onsubmit = async e => {
+  e.preventDefault();
+
+  if (!matchedOrder) return;
+
+  $("feedback-message").textContent = "Submitting...";
+
+  try {
+    const { error } = await db.rpc("submit_customer_feedback", {
+      p_order_id: matchedOrder.id,
+      p_customer_phone: $("track-phone").value.trim(),
+      p_message: $("feedback-text").value.trim(),
+      p_rating: Number($("rating").value)
+    });
+
+    $("feedback-message").textContent = error
+      ? error.message
+      : "Thank you. Your feedback was submitted.";
+
+    if (!error) $("feedback-form").reset();
+
+  } catch (err) {
+    $("feedback-message").textContent = "Could not submit feedback.";
+  }
+};
