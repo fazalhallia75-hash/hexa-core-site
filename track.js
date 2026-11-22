@@ -14,7 +14,7 @@ $("track-form").onsubmit = async e => {
   matchedOrder = null;
 
   try {
-    const { data, error } = await db.rpc("track_customer_order", {
+    const { data, error } = await db.rpc("track_customer_order_v2", {
       p_order_id: $("order-id").value.trim(),
       p_customer_phone: $("track-phone").value.trim()
     });
@@ -34,59 +34,86 @@ $("track-form").onsubmit = async e => {
     title.textContent = matchedOrder.service_name;
 
     const status = document.createElement("p");
-    status.textContent = "Status: " + matchedOrder.status;
+    status.textContent =
+      "Status: " + String(matchedOrder.status || "pending").toUpperCase();
 
-    const note = document.createElement("p");
-    note.textContent = matchedOrder.admin_note || "";
+    box.append(title, status);
 
-    box.append(title, status, note);
+    const isDelivered = matchedOrder.status === "delivered";
 
-    if (matchedOrder.delivery_path) {
-      const download = document.createElement("button");
-      download.type = "button";
-      download.className = "btn";
-      download.textContent = "Download Your File";
+    if (isDelivered) {
+      if (matchedOrder.admin_note) {
+        const note = document.createElement("p");
+        note.textContent = matchedOrder.admin_note;
+        box.append(note);
+      }
 
-      download.onclick = async () => {
-        download.disabled = true;
-        download.textContent = "Preparing download...";
+      if (matchedOrder.delivery_key) {
+        const keyTitle = document.createElement("h3");
+        keyTitle.textContent = "YOUR KEY";
 
-        try {
-          const response = await fetch(cfg.CUSTOMER_DELIVERY_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "apikey": cfg.SUPABASE_PUBLISHABLE_KEY
-            },
-            body: JSON.stringify({
-              order_id: matchedOrder.id,
-              customer_phone: $("track-phone").value.trim()
-            })
-          });
+        const key = document.createElement("p");
+        key.textContent = matchedOrder.delivery_key;
+        key.style.fontWeight = "bold";
+        key.style.wordBreak = "break-word";
 
-          const result = await response.json();
+        box.append(keyTitle, key);
+      }
 
-          if (!response.ok || !result.download_url) {
-            throw new Error(result.error || "Download unavailable");
+      if (matchedOrder.delivery_path) {
+        const download = document.createElement("button");
+        download.type = "button";
+        download.className = "btn";
+        download.textContent = "Download Your File";
+
+        download.onclick = async () => {
+          download.disabled = true;
+          download.textContent = "Preparing download...";
+
+          try {
+            const response = await fetch(cfg.CUSTOMER_DELIVERY_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": cfg.SUPABASE_PUBLISHABLE_KEY
+              },
+              body: JSON.stringify({
+                order_id: matchedOrder.id,
+                customer_phone: $("track-phone").value.trim()
+              })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.download_url) {
+              throw new Error(result.error || "Download unavailable");
+            }
+
+            const link = document.createElement("a");
+            link.href = result.download_url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = "Open delivery file";
+
+            box.append(link);
+
+            download.textContent = "Link Ready";
+
+          } catch (err) {
+            download.disabled = false;
+            download.textContent = "Try Download Again";
+            alert(err.message);
           }
+        };
 
-          const link = document.createElement("a");
-          link.href = result.download_url;
-          link.target = "_blank";
-          link.rel = "noopener";
-          link.textContent = "Open delivery file";
-          box.append(link);
+        box.append(download);
+      }
 
-          download.textContent = "Link Ready";
-
-        } catch (err) {
-          download.disabled = false;
-          download.textContent = "Try Download Again";
-          alert(err.message);
-        }
-      };
-
-      box.append(download);
+    } else {
+      const waiting = document.createElement("p");
+      waiting.textContent =
+        "Your order is being processed. Delivery will appear here once completed.";
+      box.append(waiting);
     }
 
     $("order-result").append(box);
@@ -94,10 +121,12 @@ $("track-form").onsubmit = async e => {
     $("track-message").textContent = "";
 
   } catch (err) {
-    $("track-message").textContent = "Something went wrong. Please try again.";
+    $("track-message").textContent =
+      "Something went wrong. Please try again.";
   }
 };
 
+// CUSTOMER FEEDBACK
 $("feedback-form").onsubmit = async e => {
   e.preventDefault();
   if (!matchedOrder) return;
@@ -119,6 +148,7 @@ $("feedback-form").onsubmit = async e => {
     if (!error) $("feedback-form").reset();
 
   } catch (err) {
-    $("feedback-message").textContent = "Could not submit feedback.";
+    $("feedback-message").textContent =
+      "Could not submit feedback.";
   }
 };
