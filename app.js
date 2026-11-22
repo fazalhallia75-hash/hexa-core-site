@@ -1,144 +1,233 @@
 
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#07100b">
+const $ = (id) => document.getElementById(id);
 
-  <title>HEXA CORE — Digital Services</title>
+const cfg = window.HEXA_CONFIG;
+const db = window.hexaSupabase;
 
-  <link rel="stylesheet" href="style.css">
+// Check configuration
+async function startApp() {
+  const root = $("service-list");
 
-  <!-- Supabase Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  if (!cfg || !db) {
+    root.textContent =
+      "Configuration Error: Supabase is not initialized. Check config.js.";
+    return;
+  }
 
-  <!-- Website Configuration -->
-  <script src="config.js"></script>
+  $("pay-name").textContent = cfg.JAZZCASH_ACCOUNT_NAME;
+  $("pay-number").textContent = cfg.JAZZCASH_NUMBER;
 
-  <!-- Main App Script -->
-  <script defer src="app.js?v=3"></script>
-</head>
+  $("support-link").href =
+    `https://wa.me/${cfg.WHATSAPP_NUMBER}`;
 
-<body>
+  $("support-link").textContent = "WhatsApp Support";
 
-<header class="top">
-  <a class="brand" href="index.html">
-    <img src="assets/logo.jpg" alt="HEXA CORE logo">
-    <span>HEXA CORE</span>
-  </a>
+  await loadServices();
+}
 
-  <nav>
-    <a href="#services">Services</a>
-    <a href="track.html">Track Order</a>
-    <a href="admin.html">Admin</a>
-  </nav>
-</header>
+// Load services
+async function loadServices() {
+  const root = $("service-list");
 
-<main class="wrap">
+  root.textContent = "Loading services...";
 
-  <section class="hero">
-    <p class="eyebrow">DIGITAL SERVICES STORE</p>
-    <h1>HEXA CORE</h1>
-    <p>Select a service, review the price, pay through JazzCash and submit your payment details.</p>
-  </section>
+  try {
+    const result = await db
+      .from("services")
+      .select("id,name,description,price,duration")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-  <section id="services">
-    <div class="section-head">
-      <h2>Available Services</h2>
-      <span class="muted">Prices shown in PKR</span>
-    </div>
+    if (result.error) {
+      console.error("Supabase Services Error:", result.error);
 
-    <div id="service-list" class="service-grid">
-      <p class="muted">Loading services…</p>
-    </div>
-  </section>
+      root.textContent =
+        "Supabase Error: " + result.error.message;
 
-  <section class="panel" id="order-panel">
+      return;
+    }
 
-    <h2>Place an Order</h2>
-    <p class="muted">Choose a service above to fill the order form.</p>
+    const data = result.data;
 
-    <div class="payment">
-      <div>
-        <span class="muted">JazzCash account name</span>
-        <strong id="pay-name"></strong>
-      </div>
+    if (!data || data.length === 0) {
+      root.textContent = "No active services found.";
+      return;
+    }
 
-      <div>
-        <span class="muted">JazzCash number</span>
-        <strong id="pay-number"></strong>
-      </div>
-    </div>
+    root.innerHTML = "";
 
-    <form id="order-form">
+    data.forEach((service) => {
+      const card = document.createElement("article");
+      card.className = "service-card";
 
-      <input type="hidden" id="service-id">
+      const heading = document.createElement("h3");
+      heading.textContent = service.name;
 
-      <label>
-        Selected service
-        <input id="service-name" readonly required placeholder="Select a service first">
-      </label>
+      const description = document.createElement("p");
+      description.className = "muted";
+      description.textContent = service.description || "";
 
-      <label>
-        Price (PKR)
-        <input id="service-price" readonly>
-      </label>
+      const price = document.createElement("strong");
+      price.className = "price";
+      price.textContent =
+        "Rs. " + Number(service.price).toLocaleString("en-PK");
 
-      <div class="two">
-        <label>
-          Your name
-          <input id="customer-name" required maxlength="80">
-        </label>
+      const duration = document.createElement("p");
+      duration.className = "muted";
+      duration.textContent = service.duration || "";
 
-        <label>
-          Your phone number
-          <input id="customer-phone" required inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX">
-        </label>
-      </div>
+      const button = document.createElement("button");
+      button.className = "btn choose";
+      button.type = "button";
+      button.textContent = "Select Service";
 
-      <div class="two">
-        <label>
-          Sender name
-          <input id="sender-name" required maxlength="80">
-        </label>
+      button.addEventListener("click", () => {
+        $("service-id").value = service.id;
+        $("service-name").value = service.name;
+        $("service-price").value = service.price;
 
-        <label>
-          Sender phone number
-          <input id="sender-phone" required inputmode="tel" maxlength="20">
-        </label>
-      </div>
+        $("order-panel").scrollIntoView({
+          behavior: "smooth"
+        });
+      });
 
-      <label>
-        JazzCash transaction ID
-        <input id="transaction-id" required maxlength="100">
-      </label>
+      card.append(
+        heading,
+        description,
+        price,
+        duration,
+        button
+      );
 
-      <label>
-        Payment screenshot
-        <input id="receipt" type="file" accept="image/png,image/jpeg,image/webp" required>
-      </label>
+      root.appendChild(card);
+    });
 
-      <button class="btn" type="submit">
-        Submit Payment for Verification
-      </button>
+  } catch (error) {
+    console.error("Services Loading Exception:", error);
 
-      <p id="order-message" class="message" aria-live="polite"></p>
+    root.textContent =
+      "Loading Error: " + error.message;
+  }
+}
 
-    </form>
-  </section>
+// Customer order submission
+$("order-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-  <p class="notice">
-    Orders are manually verified. A screenshot alone does not confirm payment.
-    Never share your account password or OTP.
-  </p>
+  const msg = $("order-message");
+  msg.textContent = "Submitting...";
 
-</main>
+  try {
+    const serviceId = $("service-id").value;
+    const file = $("receipt").files[0];
 
-<footer>
-  HEXA CORE · Customer support:
-  <a id="support-link" href="#">WhatsApp</a>
-</footer>
+    if (!serviceId) {
+      msg.textContent = "Please select a service first.";
+      return;
+    }
 
-</body>
-</html>
+    if (!file || file.size > 5 * 1024 * 1024) {
+      msg.textContent = "Choose an image up to 5 MB.";
+      return;
+    }
+
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type)
+    ) {
+      msg.textContent = "Use JPG, PNG or WEBP.";
+      return;
+    }
+
+    const customer = {
+      name: $("customer-name").value.trim(),
+      phone: $("customer-phone").value.trim(),
+      senderName: $("sender-name").value.trim(),
+      senderPhone: $("sender-phone").value.trim(),
+      transactionId: $("transaction-id").value.trim()
+    };
+
+    const { data: service, error: serviceError } = await db
+      .from("services")
+      .select("id,name,price")
+      .eq("id", serviceId)
+      .eq("is_active", true)
+      .single();
+
+    if (serviceError || !service) {
+      msg.textContent =
+        "Service Error: " +
+        (serviceError?.message || "Service unavailable.");
+      return;
+    }
+
+    const { data: orderId, error: orderError } = await db.rpc(
+      "create_customer_order",
+      {
+        p_service_id: service.id,
+        p_customer_name: customer.name,
+        p_customer_phone: customer.phone,
+        p_sender_name: customer.senderName,
+        p_sender_phone: customer.senderPhone,
+        p_transaction_id: customer.transactionId
+      }
+    );
+
+    if (orderError || !orderId) {
+      msg.textContent =
+        "Order Error: " +
+        (orderError?.message || "Order could not be created.");
+      return;
+    }
+
+    const extension =
+      file.type === "image/png" ? "png" :
+      file.type === "image/webp" ? "webp" : "jpg";
+
+    const path =
+      `${orderId}/${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await db.storage
+      .from("payment-receipts")
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (uploadError) {
+      msg.textContent =
+        "Receipt Upload Error: " + uploadError.message;
+      return;
+    }
+
+    const { error: attachError } = await db.rpc(
+      "attach_payment_receipt",
+      {
+        p_order_id: orderId,
+        p_customer_phone: customer.phone,
+        p_receipt_path: path
+      }
+    );
+
+    if (attachError) {
+      msg.textContent =
+        "Receipt Link Error: " + attachError.message;
+      return;
+    }
+
+    msg.textContent =
+      "Order submitted. Reference: " + orderId;
+
+    $("order-form").reset();
+    $("service-id").value = "";
+    $("service-name").value = "";
+    $("service-price").value = "";
+
+  } catch (error) {
+    console.error("Order Submission Exception:", error);
+
+    msg.textContent = "Error: " + error.message;
+  }
+});
+
+// Start website
+startApp();
