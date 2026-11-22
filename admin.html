@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HEXA CORE — Admin</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="admin.js"></script></head>
+<body><header class="top"><a class="brand" href="index.html"><img src="assets/logo.jpg" alt=""><span>HEXA CORE ADMIN</span></a><nav><a href="index.html">Store</a><a href="track.html">Track Order</a></nav></header>
+<main class="wrap"><section class="hero compact"><p class="eyebrow">PRIVATE AREA</p><h1>Admin Panel</h1></section>
+<section class="panel" id="login-panel"><h2>Admin Login</h2><form id="login-form"><label>Email<input id="email" type="email" required autocomplete="username"></label><label>Password<input id="password" type="password" required autocomplete="current-password"></label><button class="btn">Login</button><p id="login-message" class="message"></p></form></section>
+<div id="dashboard" hidden>
+  <div class="section-head"><h2>Dashboard</h2><button id="logout" class="btn secondary">Log out</button></div>
+  <section class="panel"><h2>Add / Update Service</h2><form id="service-form"><input type="hidden" id="edit-service-id"><label>Service name<input id="new-service-name" required maxlength="100"></label><label>Description<textarea id="new-service-desc" rows="2"></textarea></label><div class="two"><label>Price (PKR)<input id="new-service-price" type="number" min="0" step="1" required></label><label>Duration / delivery time<input id="new-service-duration" placeholder="e.g. 30 days"></label></div><div class="two"><button class="btn">Save Service</button><button type="button" id="clear-service" class="btn secondary">Clear</button></div><p id="service-message" class="message"></p></form><div id="admin-services"></div></section>
+  <section class="panel"><h2>Customer Orders</h2><div id="orders-list">Loading…</div></section>
+  <section class="panel"><h2>Customer Feedback</h2><div id="feedback-list">Loading…</div></section>
+</div></main><footer>HEXA CORE · Admin access only</footer></body></html>
