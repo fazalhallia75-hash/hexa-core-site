@@ -1,17 +1,17 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+
 * {
   box-sizing: border-box;
 }
 
 :root {
-  --pink: #f3a9cb;
-  --pink-light: #ffd2e5;
-  --black: #080608;
   --white: #ffffff;
-  --glass: rgba(8, 6, 8, 0.76);
-  --glass-light: rgba(255, 255, 255, 0.13);
-  --line: #080608;
-  --shadow: 0 12px 35px rgba(8, 6, 8, 0.22);
+  --black: #080808;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --border: rgba(0, 0, 0, 0.75);
+  --shadow: 0 12px 35px rgba(0, 0, 0, 0.10);
 }
 
 html {
@@ -22,11 +22,20 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 15% 10%, var(--pink-light), transparent 45%),
-    radial-gradient(ellipse at 90% 85%, var(--pink-light), transparent 40%),
-    var(--pink);
-  color: var(--white);
-  font: 16px/1.55 system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    radial-gradient(circle at 10% 10%, #eeeeee, transparent 35%),
+    radial-gradient(circle at 90% 80%, #e8e8e8, transparent 35%),
+    var(--white);
+  color: var(--black);
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 .top {
@@ -34,24 +43,25 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px max(20px, calc((100% - 1050px)/2));
-  background: rgba(8, 6, 8, 0.86);
-  border-bottom: 2px solid var(--black);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  padding: 13px max(20px, calc((100% - 1050px)/2));
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1.5px solid var(--black);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--white);
+  color: var(--black);
   text-decoration: none;
+  font-size: 19px;
   font-weight: 900;
-  letter-spacing: .08em;
+  letter-spacing: 1px;
 }
 
 .brand img {
@@ -68,17 +78,19 @@ nav {
   flex-wrap: wrap;
 }
 
+nav a,
 a {
-  color: var(--white);
+  color: var(--black);
 }
 
 nav a {
   text-decoration: none;
-  font-weight: 650;
+  font-weight: 700;
+  transition: opacity .2s ease;
 }
 
 nav a:hover {
-  opacity: .75;
+  opacity: .55;
 }
 
 .wrap {
@@ -92,20 +104,20 @@ nav a:hover {
 }
 
 .hero {
-  padding: 55px 0 38px;
+  padding: 60px 0 40px;
 }
 
 .hero h1 {
-  font-size: clamp(38px, 7vw, 68px);
+  font-size: clamp(40px, 7vw, 72px);
   line-height: 1.05;
-  margin: 8px 0;
-  color: var(--white);
-  text-shadow: 0 3px 15px rgba(8, 6, 8, .35);
+  margin: 10px 0;
+  font-weight: 900;
+  letter-spacing: -2px;
 }
 
 .hero p {
   max-width: 650px;
-  color: var(--white);
+  color: #222222;
 }
 
 .compact {
@@ -113,10 +125,9 @@ nav a:hover {
 }
 
 .eyebrow {
-  letter-spacing: .22em;
-  color: var(--white);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 3px;
 }
 
 .section-head {
@@ -130,23 +141,23 @@ nav a:hover {
 h2 {
   font-size: 25px;
   margin: 0 0 16px;
-  color: var(--white);
+  font-weight: 900;
 }
 
 h3 {
   margin: 0 0 8px;
-  color: var(--white);
+  font-weight: 900;
 }
 
 .muted {
-  color: var(--white);
-  opacity: .78;
+  color: #333333;
+  opacity: .8;
 }
 
 .service-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 16px;
+  gap: 17px;
   margin: 18px 0 35px;
 }
 
@@ -154,52 +165,48 @@ h3 {
 .panel,
 .order-card {
   background: var(--glass);
-  border: 2px solid var(--black);
+  border: 1.5px solid var(--border);
   border-radius: 20px;
-  padding: 20px;
+  padding: 21px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-}
-
-.service-card,
-.order-card {
-  transition: transform .2s ease, box-shadow .2s ease;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
 
 .service-card:hover,
 .order-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 38px rgba(8, 6, 8, .3);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, .15);
 }
 
 .price {
   display: block;
-  font-size: 24px;
-  margin: 10px 0;
-  color: var(--white);
-  font-weight: 800;
+  font-size: 25px;
+  margin: 12px 0;
+  font-weight: 900;
+  color: var(--black);
 }
 
 .btn {
-  border: 2px solid var(--black);
-  background: var(--pink);
+  border: 1.5px solid var(--black);
+  background: var(--black);
   color: var(--white);
   border-radius: 12px;
-  padding: 11px 17px;
-  font: inherit;
-  font-weight: 800;
+  padding: 11px 18px;
+  font-weight: 900;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
   text-align: center;
-  transition: .2s ease;
+  transition: all .2s ease;
 }
 
 .btn:hover {
-  background: var(--black);
-  color: var(--white);
-  transform: translateY(-1px);
+  background: var(--white);
+  color: var(--black);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, .12);
 }
 
 .secondary {
@@ -222,13 +229,13 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background: var(--glass-light);
-  border: 2px solid var(--black);
+  background: rgba(255, 255, 255, .48);
+  border: 1.5px solid var(--black);
   padding: 15px;
   border-radius: 15px;
   margin: 18px 0;
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .payment div {
@@ -244,34 +251,34 @@ form {
 label {
   display: grid;
   gap: 6px;
-  color: var(--white);
+  color: var(--black);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 input,
 textarea,
 select {
   width: 100%;
-  background: rgba(8, 6, 8, .88);
-  color: var(--white);
-  border: 2px solid var(--black);
+  background: rgba(255, 255, 255, .78);
+  color: var(--black);
+  border: 1.5px solid var(--black);
   border-radius: 11px;
   padding: 12px;
-  font: inherit;
   min-width: 0;
+  outline: none;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--white);
-  opacity: .7;
+  color: #555555;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid var(--white);
+  background: var(--white);
+  outline: 2px solid var(--black);
   outline-offset: 2px;
 }
 
@@ -280,12 +287,12 @@ input[type="file"] {
 }
 
 input[type="file"]::file-selector-button {
-  background: var(--pink);
+  background: var(--black);
   color: var(--white);
   border: 1px solid var(--black);
-  border-radius: 7px;
-  padding: 8px 11px;
-  font-weight: 700;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-right: 10px;
   cursor: pointer;
 }
 
@@ -296,14 +303,14 @@ input[type="file"]::file-selector-button {
 }
 
 .message {
-  color: var(--white);
+  color: var(--black);
   overflow-wrap: anywhere;
 }
 
 .notice {
-  color: var(--white);
+  color: var(--black);
   font-size: 13px;
-  border-top: 2px solid var(--black);
+  border-top: 1px solid var(--black);
   padding-top: 18px;
 }
 
@@ -312,7 +319,7 @@ input[type="file"]::file-selector-button {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 13px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--black);
   flex-wrap: wrap;
 }
@@ -323,7 +330,6 @@ input[type="file"]::file-selector-button {
 
 .order-card p {
   overflow-wrap: anywhere;
-  color: var(--white);
 }
 
 .admin-actions {
@@ -338,32 +344,35 @@ input[type="file"]::file-selector-button {
 }
 
 .status {
-  border: 2px solid var(--black);
-  border-radius: 20px;
-  padding: 4px 11px;
-  color: var(--white);
-  background: var(--pink);
+  border: 1.5px solid var(--black);
+  border-radius: 30px;
+  padding: 4px 12px;
+  color: var(--black);
+  background: var(--white);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 code {
   overflow-wrap: anywhere;
-  color: var(--white);
+  color: var(--black);
+  background: rgba(0, 0, 0, .06);
+  padding: 3px 6px;
+  border-radius: 5px;
 }
 
 footer {
   text-align: center;
-  color: var(--white);
-  background: var(--glass);
-  border-top: 2px solid var(--black);
+  color: var(--black);
+  background: rgba(255, 255, 255, .72);
+  border-top: 1.5px solid var(--black);
   padding: 22px;
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 button:disabled {
-  opacity: .6;
+  opacity: .55;
   cursor: not-allowed;
   transform: none;
 }
@@ -397,5 +406,18 @@ button:disabled {
   .order-card {
     border-radius: 16px;
     padding: 16px;
+  }
+
+  nav {
+    gap: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
   }
 }
