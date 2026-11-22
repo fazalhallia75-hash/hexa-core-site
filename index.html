@@ -1,31 +1,144 @@
+
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#07100b"><title>HEXA CORE — Digital Services</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07100b">
+
+  <title>HEXA CORE — Digital Services</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script><script defer src="app.js"></script>
+
+  <!-- Website Configuration -->
+  <script src="config.js"></script>
+
+  <!-- Main App Script -->
+  <script defer src="app.js?v=3"></script>
 </head>
+
 <body>
-<header class="top"><a class="brand" href="index.html"><img src="assets/logo.jpg" alt="HEXA CORE logo"><span>HEXA CORE</span></a><nav><a href="#services">Services</a><a href="track.html">Track Order</a><a href="admin.html">Admin</a></nav></header>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img src="assets/logo.jpg" alt="HEXA CORE logo">
+    <span>HEXA CORE</span>
+  </a>
+
+  <nav>
+    <a href="#services">Services</a>
+    <a href="track.html">Track Order</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
+
 <main class="wrap">
-  <section class="hero"><p class="eyebrow">DIGITAL SERVICES STORE</p><h1>HEXA CORE</h1><p>Select a service, review the price, pay through JazzCash and submit your payment details.</p></section>
-  <section id="services"><div class="section-head"><h2>Available Services</h2><span class="muted">Prices shown in PKR</span></div><div id="service-list" class="service-grid"><p class="muted">Loading services…</p></div></section>
+
+  <section class="hero">
+    <p class="eyebrow">DIGITAL SERVICES STORE</p>
+    <h1>HEXA CORE</h1>
+    <p>Select a service, review the price, pay through JazzCash and submit your payment details.</p>
+  </section>
+
+  <section id="services">
+    <div class="section-head">
+      <h2>Available Services</h2>
+      <span class="muted">Prices shown in PKR</span>
+    </div>
+
+    <div id="service-list" class="service-grid">
+      <p class="muted">Loading services…</p>
+    </div>
+  </section>
+
   <section class="panel" id="order-panel">
-    <h2>Place an Order</h2><p class="muted">Choose a service above to fill the order form.</p>
-    <div class="payment"><div><span class="muted">JazzCash account name</span><strong id="pay-name"></strong></div><div><span class="muted">JazzCash number</span><strong id="pay-number"></strong></div></div>
+
+    <h2>Place an Order</h2>
+    <p class="muted">Choose a service above to fill the order form.</p>
+
+    <div class="payment">
+      <div>
+        <span class="muted">JazzCash account name</span>
+        <strong id="pay-name"></strong>
+      </div>
+
+      <div>
+        <span class="muted">JazzCash number</span>
+        <strong id="pay-number"></strong>
+      </div>
+    </div>
+
     <form id="order-form">
-      <input type="hidden" id="service-id"><label>Selected service<input id="service-name" readonly required placeholder="Select a service first"></label>
-      <label>Price (PKR)<input id="service-price" readonly></label>
-      <div class="two"><label>Your name<input id="customer-name" required maxlength="80"></label><label>Your phone number<input id="customer-phone" required inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX"></label></div>
-      <div class="two"><label>Sender name<input id="sender-name" required maxlength="80"></label><label>Sender phone number<input id="sender-phone" required inputmode="tel" maxlength="20"></label></div>
-      <label>JazzCash transaction ID<input id="transaction-id" required maxlength="100"></label>
-      <label>Payment screenshot<input id="receipt" type="file" accept="image/png,image/jpeg,image/webp" required></label>
-      <button class="btn" type="submit">Submit Payment for Verification</button><p id="order-message" class="message" aria-live="polite"></p>
+
+      <input type="hidden" id="service-id">
+
+      <label>
+        Selected service
+        <input id="service-name" readonly required placeholder="Select a service first">
+      </label>
+
+      <label>
+        Price (PKR)
+        <input id="service-price" readonly>
+      </label>
+
+      <div class="two">
+        <label>
+          Your name
+          <input id="customer-name" required maxlength="80">
+        </label>
+
+        <label>
+          Your phone number
+          <input id="customer-phone" required inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX">
+        </label>
+      </div>
+
+      <div class="two">
+        <label>
+          Sender name
+          <input id="sender-name" required maxlength="80">
+        </label>
+
+        <label>
+          Sender phone number
+          <input id="sender-phone" required inputmode="tel" maxlength="20">
+        </label>
+      </div>
+
+      <label>
+        JazzCash transaction ID
+        <input id="transaction-id" required maxlength="100">
+      </label>
+
+      <label>
+        Payment screenshot
+        <input id="receipt" type="file" accept="image/png,image/jpeg,image/webp" required>
+      </label>
+
+      <button class="btn" type="submit">
+        Submit Payment for Verification
+      </button>
+
+      <p id="order-message" class="message" aria-live="polite"></p>
+
     </form>
   </section>
-  <p class="notice">Orders are manually verified. A screenshot alone does not confirm payment. Never share your account password or OTP.</p>
+
+  <p class="notice">
+    Orders are manually verified. A screenshot alone does not confirm payment.
+    Never share your account password or OTP.
+  </p>
+
 </main>
-<footer>HEXA CORE · Customer support: <a id="support-link" href="#">WhatsApp</a></footer>
-</body></html>
+
+<footer>
+  HEXA CORE · Customer support:
+  <a id="support-link" href="#">WhatsApp</a>
+</footer>
+
+</body>
+</html>
