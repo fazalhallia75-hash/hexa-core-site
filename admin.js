@@ -5,13 +5,13 @@ const db = window.hexaSupabase;
 let currentOrders = [];
 let currentServices = [];
 let currentFeedback = [];
+let knownOrderIds = new Set();
+let firstOrderLoad = true;
+let audioContext = null;
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;"
+  "&": "&amp;", "<": "&lt;", ">": "&gt;",
+  '"': "&quot;", "'": "&#39;"
 }[c]));
 
 const money = n => Number(n || 0).toLocaleString("en-PK");
@@ -21,15 +21,75 @@ function showMessage(id, message) {
   if (el) el.textContent = message;
 }
 
-function toggleDeliveryFields(id) {
-  const status = $(`status-${id}`);
-  const fields = $(`delivery-fields-${id}`);
+// ADMIN SOUND
+function playOrderSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
 
-  if (status && fields) {
-    fields.hidden = !["approved", "delivered"].includes(status.value);
+    audioContext = audioContext || new AudioCtx();
+
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+    }
+
+    [0, 0.25, 0.5].forEach((delay, i) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = i === 1 ? 880 : 660;
+
+      gain.gain.setValueAtTime(0.001, audioContext.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(
+        0.18, audioContext.currentTime + delay + 0.03
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.001, audioContext.currentTime + delay + 0.18
+      );
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start(audioContext.currentTime + delay);
+      oscillator.stop(audioContext.currentTime + delay + 0.2);
+    });
+  } catch (err) {
+    console.log("Sound unavailable");
   }
 }
 
+async function notifyNewOrder(order) {
+  playOrderSound();
+
+  if ("Notification" in window &&
+      Notification.permission === "granted") {
+    new Notification("HEXA CORE — New Order", {
+      body: `${order.service_name} · ${order.customer_name}`,
+      tag: order.id
+    });
+  }
+}
+
+async function enableNotifications() {
+  if (!("Notification" in window)) {
+    alert("Browser notifications are not supported.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+
+  if (permission === "granted") {
+    if (audioContext?.state === "suspended") {
+      await audioContext.resume();
+    }
+    alert("Notifications enabled.");
+  } else {
+    alert("Please allow notifications in browser settings.");
+  }
+}
+
+// REFRESH
 async function refresh() {
   await Promise.all([
     loadServices(),
@@ -62,9 +122,7 @@ async function loadServices() {
         <div class="muted">${esc(s.description)}</div>
       </div>
       <div>
-        <button class="btn secondary" data-edit="${esc(s.id)}">
-          Edit
-        </button>
+        <button class="btn secondary" data-edit="${esc(s.id)}">Edit</button>
         <button class="btn danger"
           data-toggle="${esc(s.id)}"
           data-active="${s.is_active}">
@@ -120,9 +178,22 @@ async function loadOrders() {
 
   currentOrders = data || [];
 
+  const newOrders = currentOrders.filter(o =>
+    o.status === "pending" && !knownOrderIds.has(o.id)
+  );
+
+  if (firstOrderLoad) {
+    firstOrderLoad = false;
+  } else {
+    for (const order of newOrders) {
+      await notifyNewOrder(order);
+    }
+  }
+
+  currentOrders.forEach(o => knownOrderIds.add(o.id));
+
   $("orders-list").innerHTML = currentOrders.map(o => `
     <article class="order-card">
-
       <div class="section-head">
         <b>${esc(o.service_name)} · Rs. ${money(o.price)}</b>
         <span class="status">${esc(o.status)}</span>
@@ -135,96 +206,88 @@ async function loadOrders() {
       <p>Created: ${new Date(o.created_at).toLocaleString()}</p>
 
       <div class="admin-actions">
-
         <button class="btn secondary" data-receipt="${esc(o.id)}">
           View Receipt
         </button>
 
-        <label>
-          Order Status
-          <select id="status-${esc(o.id)}" data-status="${esc(o.id)}">
-            <option value="pending">PENDING</option>
-            <option value="approved">APPROVED</option>
-            <option value="delivered">DELIVERED</option>
-            <option value="rejected">REJECTED</option>
-          </select>
-        </label>
+        ${o.status === "pending" ? `
+          <button class="btn" data-accept="${esc(o.id)}">
+            ACCEPT ORDER
+          </button>
+          <button class="btn danger" data-decline="${esc(o.id)}">
+            DECLINE
+          </button>
+        ` : ""}
 
-        <div id="delivery-fields-${esc(o.id)}"
-             hidden>
+        ${o.status === "approved" ? `
+          <div class="delivery-fields">
+            <label>NOTE
+              <textarea data-note="${esc(o.id)}"
+                placeholder="Enter customer note">${esc(o.admin_note || "")}</textarea>
+            </label>
 
-          <label>
-            KEY
-            <input
-              id="key-${esc(o.id)}"
-              data-key="${esc(o.id)}"
-              value="${esc(o.delivery_key || "")}"
-              placeholder="Enter customer delivery key">
-          </label>
+            <label>KEY
+              <input data-key="${esc(o.id)}"
+                value="${esc(o.delivery_key || "")}"
+                placeholder="Enter delivery key">
+            </label>
 
-          <label class="file-label">
-            Delivery File
-            <input
-              type="file"
-              data-delivery="${esc(o.id)}">
-          </label>
+            <label>FILE DOWNLOAD LINK
+              <input type="url" data-link="${esc(o.id)}"
+                value="${esc(o.delivery_url || "")}"
+                placeholder="Paste MediaFire download link">
+            </label>
 
-          ${o.delivery_path ? `
-            <p class="muted">A delivery file is already uploaded.</p>
-          ` : ""}
-        </div>
+            <button class="btn" data-deliver="${esc(o.id)}">
+              DELIVER TO CUSTOMER
+            </button>
+          </div>
+        ` : ""}
 
-        <label>
-          Admin Note
-          <input
-            data-note="${esc(o.id)}"
-            value="${esc(o.admin_note || "")}"
-            placeholder="Optional note">
-        </label>
-
-        <button class="btn" data-save="${esc(o.id)}">
-          SAVE ORDER
-        </button>
+        ${o.status === "delivered" ? `
+          <p class="muted">Delivery completed.</p>
+          <p>KEY: ${esc(o.delivery_key || "")}</p>
+          <p>NOTE: ${esc(o.admin_note || "")}</p>
+          <p>LINK: ${esc(o.delivery_url || "")}</p>
+        ` : ""}
 
         <button class="btn danger" data-delete-order="${esc(o.id)}">
           DELETE ORDER
         </button>
-
       </div>
     </article>
   `).join("") || "No orders yet.";
 
-  currentOrders.forEach(o => {
-    const status = $(`status-${o.id}`);
-    if (status) status.value = o.status || "pending";
-    toggleDeliveryFields(o.id);
-  });
+  // ACCEPT
+  $("orders-list").querySelectorAll("[data-accept]").forEach(b => {
+    b.onclick = async () => {
+      if (!confirm("Accept this order?")) return;
 
-  // STATUS CHANGE
-  $("orders-list").querySelectorAll("[data-status]").forEach(el => {
-    el.onchange = async () => {
-      const id = el.dataset.status;
+      b.disabled = true;
 
-      if (el.value === "rejected") {
-        const confirmed = confirm(
-          "Reject this order and permanently delete it?"
-        );
+      const { error } = await db.from("orders")
+        .update({ status: "approved" })
+        .eq("id", b.dataset.accept)
+        .eq("status", "pending");
 
-        if (!confirmed) {
-          const order = currentOrders.find(x => x.id === id);
-          el.value = order?.status || "pending";
-          return;
-        }
-
-        await deleteOrder(id);
-        return;
+      if (error) {
+        alert("Accept Error: " + error.message);
+        b.disabled = false;
+      } else {
+        await refresh();
       }
-
-      toggleDeliveryFields(id);
     };
   });
 
-  // RECEIPT VIEW
+  // DECLINE
+  $("orders-list").querySelectorAll("[data-decline]").forEach(b => {
+    b.onclick = async () => {
+      if (!confirm("Decline and delete this order?")) return;
+      await deleteOrder(b.dataset.decline);
+    };
+  });
+
+  // RECEIPT
   $("orders-list").querySelectorAll("[data-receipt]").forEach(b => {
     b.onclick = async () => {
       const order = currentOrders.find(x => x.id === b.dataset.receipt);
@@ -238,112 +301,63 @@ async function loadOrders() {
         .from("payment-receipts")
         .createSignedUrl(order.receipt_path, 120);
 
-      if (error) {
-        alert("Receipt Error: " + error.message);
-      } else {
-        window.open(data.signedUrl, "_blank", "noopener");
-      }
+      if (error) alert("Receipt Error: " + error.message);
+      else window.open(data.signedUrl, "_blank", "noopener");
     };
   });
 
-  // SAVE ORDER
-  $("orders-list").querySelectorAll("[data-save]").forEach(b => {
+  // DELIVER
+  $("orders-list").querySelectorAll("[data-deliver]").forEach(b => {
     b.onclick = async () => {
-      const id = b.dataset.save;
-      const order = currentOrders.find(x => x.id === id);
-      if (!order) return;
-
-      const status = $(`status-${id}`).value;
+      const id = b.dataset.deliver;
       const note = $(`[data-note="${id}"]`).value.trim();
-      const keyInput = $(`[data-key="${id}"]`);
-      const fileInput = $(`[data-delivery="${id}"]`);
-      const file = fileInput?.files?.[0];
+      const key = $(`[data-key="${id}"]`).value.trim();
+      const link = $(`[data-link="${id}"]`).value.trim();
 
-      if (status === "rejected") {
-        alert("Rejected orders are deleted automatically.");
+      if (!key || !link) {
+        alert("Please enter both KEY and MediaFire download link.");
         return;
       }
-
-      let deliveryKey = order.delivery_key || null;
-      let deliveryPath = order.delivery_path || null;
-
-      if (["approved", "delivered"].includes(status)) {
-        deliveryKey = keyInput?.value.trim() || "";
-
-        if (!deliveryKey) {
-          alert("Please enter the customer's KEY.");
-          return;
-        }
-
-        if (file) {
-          if (file.size > 20 * 1024 * 1024) {
-            alert("Delivery file must be 20 MB or smaller.");
-            return;
-          }
-
-          const ext = (file.name.split(".").pop() || "bin")
-            .replace(/[^a-z0-9]/gi, "") || "bin";
-
-          const path = `${id}/${crypto.randomUUID()}.${ext}`;
-
-          b.disabled = true;
-          b.textContent = "Uploading...";
-
-          const upload = await db.storage
-            .from("delivery-files")
-            .upload(path, file, { upsert: false });
-
-          if (upload.error) {
-            alert("Delivery Upload Error: " + upload.error.message);
-            b.disabled = false;
-            b.textContent = "SAVE ORDER";
-            return;
-          }
-
-          deliveryPath = path;
-        }
-
-        if (!deliveryPath) {
-          alert("Please upload the delivery file first.");
-          return;
-        }
-      }
-
-      if (status === "delivered" &&
-          (!deliveryKey || !deliveryPath)) {
-        alert("KEY and delivery file are required before delivery.");
-        return;
-      }
-
-      b.disabled = true;
-      b.textContent = "Saving...";
 
       try {
-        const { error } = await db.from("orders")
-          .update({
-            status,
-            admin_note: note,
-            delivery_key: deliveryKey,
-            delivery_path: deliveryPath
-          })
-          .eq("id", id);
-
-        if (error) {
-          alert("Order Update Error: " + error.message);
-        } else {
-          alert("Order updated successfully.");
-          await refresh();
+        const parsed = new URL(link);
+        if (parsed.protocol !== "https:") {
+          alert("Please enter a valid HTTPS download link.");
+          return;
         }
-      } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
+      } catch {
+        alert("Please enter a valid download link.");
+        return;
+      }
+
+      if (!confirm("Deliver this order to the customer now?")) return;
+
+      b.disabled = true;
+      b.textContent = "DELIVERING...";
+
+      const { error } = await db.from("orders")
+        .update({
+          status: "delivered",
+          admin_note: note,
+          delivery_key: key,
+          delivery_url: link,
+          delivery_path: null
+        })
+        .eq("id", id)
+        .eq("status", "approved");
+
+      if (error) {
+        alert("Delivery Error: " + error.message);
         b.disabled = false;
-        b.textContent = "SAVE ORDER";
+        b.textContent = "DELIVER TO CUSTOMER";
+      } else {
+        alert("Order delivered successfully.");
+        await refresh();
       }
     };
   });
 
-  // DELETE ORDER
+  // DELETE
   $("orders-list").querySelectorAll("[data-delete-order]").forEach(b => {
     b.onclick = async () => {
       if (!confirm("Permanently delete this order?")) return;
@@ -357,9 +371,8 @@ async function deleteOrder(id) {
     .delete()
     .eq("id", id);
 
-  if (error) {
-    alert("Delete Order Error: " + error.message);
-  } else {
+  if (error) alert("Delete Order Error: " + error.message);
+  else {
     alert("Order deleted.");
     await refresh();
   }
@@ -389,7 +402,6 @@ async function loadFeedback() {
           ${new Date(f.created_at).toLocaleString()}
         </small>
       </div>
-
       <button class="btn danger" data-delete-feedback="${esc(f.id)}">
         DELETE
       </button>
@@ -404,9 +416,8 @@ async function loadFeedback() {
         .delete()
         .eq("id", b.dataset.deleteFeedback);
 
-      if (error) {
-        alert("Feedback Delete Error: " + error.message);
-      } else {
+      if (error) alert("Feedback Delete Error: " + error.message);
+      else {
         alert("Feedback deleted.");
         await loadFeedback();
       }
@@ -436,13 +447,30 @@ $("login-form").onsubmit = async e => {
 // SESSION
 async function checkSession() {
   const { data, error } = await db.auth.getUser();
-
   if (error || !data?.user) return;
 
   $("login-panel").hidden = true;
   $("dashboard").hidden = false;
 
+  if (!document.getElementById("notification-enable")) {
+    const button = document.createElement("button");
+    button.id = "notification-enable";
+    button.className = "btn secondary";
+    button.textContent = "ENABLE NOTIFICATIONS + RINGTONE";
+    button.onclick = enableNotifications;
+    $("dashboard").prepend(button);
+  }
+
+  // User interaction unlocks sound playback on supported browsers.
+  $("notification-enable").onclick = async () => {
+    await enableNotifications();
+    playOrderSound();
+  };
+
   await refresh();
+
+  // Poll for new orders while admin panel is open.
+  setInterval(loadOrders, 15000);
 }
 
 // LOGOUT
