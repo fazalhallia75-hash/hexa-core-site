@@ -156,17 +156,17 @@ async function loadServices() {
     b.onclick = async () => {
       b.disabled = true;
 
-      const { error } = await db.from("services")
-        .update({ is_active: b.dataset.active !== "true" })
-        .eq("id", b.dataset.toggle);
+      try {
+        const { error } = await db.from("services")
+          .update({ is_active: b.dataset.active !== "true" })
+          .eq("id", b.dataset.toggle);
 
-      if (error) {
-        alert("Service Error: " + error.message);
-      } else {
+        if (error) throw error;
         await loadServices();
+      } catch (err) {
+        alert("Service Error: " + err.message);
+        b.disabled = false;
       }
-
-      b.disabled = false;
     };
   });
 }
@@ -247,6 +247,7 @@ async function loadOrders() {
             <button type="button" class="btn" data-deliver="${esc(o.id)}">
               DELIVER TO CUSTOMER
             </button>
+
             <p data-delivery-message="${esc(o.id)}" class="muted"></p>
           </div>
         ` : ""}
@@ -280,6 +281,7 @@ async function loadOrders() {
           .select("id");
 
         if (error) throw error;
+
         if (!data?.length) {
           throw new Error("Order was not updated. Refresh and check its status.");
         }
@@ -327,30 +329,31 @@ async function loadOrders() {
   $("orders-list").querySelectorAll("[data-deliver]").forEach(b => {
     b.onclick = async () => {
       const id = b.dataset.deliver;
-      const message = $(`[data-delivery-message="${id}"]`);
+      const card = b.closest(".order-card");
+
+      const message = card?.querySelector("[data-delivery-message]");
+      const note = card?.querySelector("[data-note]")?.value.trim() || "";
+      const key = card?.querySelector("[data-key]")?.value.trim() || "";
+      const link = card?.querySelector("[data-link]")?.value.trim() || "";
 
       try {
-        const note = $(`[data-note="${id}"]`)?.value.trim() || "";
-        const key = $(`[data-key="${id}"]`)?.value.trim() || "";
-        const link = $(`[data-link="${id}"]`)?.value.trim() || "";
-
         if (!key || !link) {
-          alert("Please enter both KEY and MediaFire download link.");
-          return;
+          throw new Error("Please enter both KEY and MediaFire link.");
         }
 
         let parsed;
-
         try {
           parsed = new URL(link);
         } catch {
-          alert("Please enter a valid download link.");
-          return;
+          throw new Error("Invalid download link.");
         }
 
-        if (parsed.protocol !== "https:") {
-          alert("Please enter a valid HTTPS download link.");
-          return;
+        const validHost =
+          parsed.hostname === "mediafire.com" ||
+          parsed.hostname.endsWith(".mediafire.com");
+
+        if (parsed.protocol !== "https:" || !validHost) {
+          throw new Error("Please enter a valid HTTPS MediaFire link.");
         }
 
         if (!confirm("Deliver this order to the customer now?")) return;
@@ -365,8 +368,7 @@ async function loadOrders() {
             status: "delivered",
             admin_note: note,
             delivery_key: key,
-            delivery_url: link,
-            delivery_path: null
+            delivery_url: link
           })
           .eq("id", id)
           .eq("status", "approved")
@@ -374,9 +376,9 @@ async function loadOrders() {
 
         if (error) throw error;
 
-        if (!data?.length) {
+        if (!data || data.length === 0) {
           throw new Error(
-            "No order was updated. Check admin permissions and order status."
+            "No order updated. Check that the order is approved and admin permissions are correct."
           );
         }
 
@@ -384,11 +386,9 @@ async function loadOrders() {
           throw new Error("Delivery status could not be confirmed.");
         }
 
-        if (message) {
-          message.textContent = "Delivery saved successfully.";
-        }
+        if (message) message.textContent = "Delivery saved successfully.";
 
-        alert("Order delivered successfully. Customer can now track delivery.");
+        alert("Order delivered successfully. Customer can now track it.");
 
         await refresh();
 
@@ -416,6 +416,7 @@ async function loadOrders() {
   });
 }
 
+// DELETE ORDER
 async function deleteOrder(id) {
   const { error } = await db.from("orders")
     .delete()
