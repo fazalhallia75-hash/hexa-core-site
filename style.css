@@ -38,6 +38,8 @@ select {
   font: inherit;
 }
 
+/* HEADER */
+
 .top {
   display: flex;
   align-items: center;
@@ -92,6 +94,28 @@ nav a {
 nav a:hover {
   opacity: .55;
 }
+
+/* MAIN BANNER */
+
+.site-banner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 22px auto;
+  padding: 0 20px;
+}
+
+.site-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  border: 1.5px solid var(--black);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+/* CONTENT */
 
 .wrap {
   max-width: 1050px;
@@ -154,6 +178,8 @@ h3 {
   opacity: .8;
 }
 
+/* SERVICES */
+
 .service-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -188,6 +214,8 @@ h3 {
   color: var(--black);
 }
 
+/* BUTTONS */
+
 .btn {
   border: 1.5px solid var(--black);
   background: var(--black);
@@ -221,6 +249,8 @@ h3 {
   border-color: var(--black);
 }
 
+/* PANELS */
+
 .panel {
   margin: 22px 0;
 }
@@ -242,6 +272,8 @@ h3 {
   display: grid;
   gap: 4px;
 }
+
+/* FORMS */
 
 form {
   display: grid;
@@ -314,6 +346,8 @@ input[type="file"]::file-selector-button {
   padding-top: 18px;
 }
 
+/* ADMIN */
+
 .admin-row {
   display: flex;
   justify-content: space-between;
@@ -361,6 +395,8 @@ code {
   border-radius: 5px;
 }
 
+/* FOOTER */
+
 footer {
   text-align: center;
   color: var(--black);
@@ -381,10 +417,21 @@ button:disabled {
   display: none !important;
 }
 
+/* MOBILE */
+
 @media (max-width: 600px) {
   .top {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .site-banner {
+    margin: 14px auto;
+    padding: 0 14px;
+  }
+
+  .site-banner img {
+    border-radius: 12px;
   }
 
   .two,
