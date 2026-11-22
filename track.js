@@ -1,7 +1,6 @@
 
 const $ = id => document.getElementById(id);
 const db = window.hexaSupabase;
-const cfg = window.HEXA_CONFIG;
 
 let matchedOrder = null;
 
@@ -19,7 +18,9 @@ $("track-form").onsubmit = async e => {
       p_customer_phone: $("track-phone").value.trim()
     });
 
-    if (error || !data?.length) {
+    if (error) throw error;
+
+    if (!data?.length) {
       $("track-message").textContent =
         "Order not found. Check the reference and phone number.";
       return;
@@ -39,13 +40,16 @@ $("track-form").onsubmit = async e => {
 
     box.append(title, status);
 
-    const isDelivered = matchedOrder.status === "delivered";
+    if (matchedOrder.status === "delivered") {
 
-    if (isDelivered) {
       if (matchedOrder.admin_note) {
+        const noteTitle = document.createElement("h3");
+        noteTitle.textContent = "NOTE";
+
         const note = document.createElement("p");
         note.textContent = matchedOrder.admin_note;
-        box.append(note);
+
+        box.append(noteTitle, note);
       }
 
       if (matchedOrder.delivery_key) {
@@ -57,62 +61,44 @@ $("track-form").onsubmit = async e => {
         key.style.fontWeight = "bold";
         key.style.wordBreak = "break-word";
 
-        box.append(keyTitle, key);
-      }
+        const copyButton = document.createElement("button");
+        copyButton.type = "button";
+        copyButton.className = "btn secondary";
+        copyButton.textContent = "COPY KEY";
 
-      if (matchedOrder.delivery_path) {
-        const download = document.createElement("button");
-        download.type = "button";
-        download.className = "btn";
-        download.textContent = "Download Your File";
-
-        download.onclick = async () => {
-          download.disabled = true;
-          download.textContent = "Preparing download...";
-
+        copyButton.onclick = async () => {
           try {
-            const response = await fetch(cfg.CUSTOMER_DELIVERY_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "apikey": cfg.SUPABASE_PUBLISHABLE_KEY
-              },
-              body: JSON.stringify({
-                order_id: matchedOrder.id,
-                customer_phone: $("track-phone").value.trim()
-              })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.download_url) {
-              throw new Error(result.error || "Download unavailable");
-            }
-
-            const link = document.createElement("a");
-            link.href = result.download_url;
-            link.target = "_blank";
-            link.rel = "noopener";
-            link.textContent = "Open delivery file";
-
-            box.append(link);
-
-            download.textContent = "Link Ready";
-
-          } catch (err) {
-            download.disabled = false;
-            download.textContent = "Try Download Again";
-            alert(err.message);
+            await navigator.clipboard.writeText(matchedOrder.delivery_key);
+            copyButton.textContent = "COPIED!";
+          } catch {
+            alert("Please copy the key manually.");
           }
         };
 
-        box.append(download);
+        box.append(keyTitle, key, copyButton);
+      }
+
+      if (matchedOrder.delivery_url) {
+        const downloadTitle = document.createElement("h3");
+        downloadTitle.textContent = "YOUR DOWNLOAD";
+
+        const download = document.createElement("a");
+        download.href = matchedOrder.delivery_url;
+        download.target = "_blank";
+        download.rel = "noopener noreferrer";
+        download.className = "btn";
+        download.textContent = "DOWNLOAD FILE";
+        download.style.display = "inline-block";
+        download.style.textDecoration = "none";
+
+        box.append(downloadTitle, download);
       }
 
     } else {
       const waiting = document.createElement("p");
       waiting.textContent =
         "Your order is being processed. Delivery will appear here once completed.";
+
       box.append(waiting);
     }
 
@@ -121,8 +107,9 @@ $("track-form").onsubmit = async e => {
     $("track-message").textContent = "";
 
   } catch (err) {
+    console.error("Tracking error:", err);
     $("track-message").textContent =
-      "Something went wrong. Please try again.";
+      "Something went wrong: " + (err.message || "Please try again.");
   }
 };
 
@@ -148,6 +135,7 @@ $("feedback-form").onsubmit = async e => {
     if (!error) $("feedback-form").reset();
 
   } catch (err) {
+    console.error("Feedback error:", err);
     $("feedback-message").textContent =
       "Could not submit feedback.";
   }
