@@ -3,21 +3,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#07100b">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3a9cb">
 
   <title>HEXA CORE — Digital Services</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=10">
 
-  <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Website Configuration -->
   <script src="config.js"></script>
-
-  <!-- Main App Script -->
-  <script defer src="app.js?v=3"></script>
+  <script defer src="app.js?v=10"></script>
 </head>
 
 <body>
@@ -40,24 +35,29 @@
   <section class="hero">
     <p class="eyebrow">DIGITAL SERVICES STORE</p>
     <h1>HEXA CORE</h1>
-    <p>Select a service, review the price, pay through JazzCash and submit your payment details.</p>
+    <p>
+      Select your service, review the price, complete payment
+      through JazzCash and submit your payment details.
+    </p>
   </section>
 
   <section id="services">
     <div class="section-head">
       <h2>Available Services</h2>
-      <span class="muted">Prices shown in PKR</span>
+      <span class="muted">Prices in PKR</span>
     </div>
 
     <div id="service-list" class="service-grid">
-      <p class="muted">Loading services…</p>
+      <p class="muted">Loading services...</p>
     </div>
   </section>
 
   <section class="panel" id="order-panel">
 
     <h2>Place an Order</h2>
-    <p class="muted">Choose a service above to fill the order form.</p>
+    <p class="muted">
+      Choose a service above to complete your order.
+    </p>
 
     <div class="payment">
       <div>
@@ -77,7 +77,11 @@
 
       <label>
         Selected service
-        <input id="service-name" readonly required placeholder="Select a service first">
+        <input
+          id="service-name"
+          readonly
+          required
+          placeholder="Select a service first">
       </label>
 
       <label>
@@ -86,6 +90,7 @@
       </label>
 
       <div class="two">
+
         <label>
           Your name
           <input id="customer-name" required maxlength="80">
@@ -93,11 +98,18 @@
 
         <label>
           Your phone number
-          <input id="customer-phone" required inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX">
+          <input
+            id="customer-phone"
+            required
+            inputmode="tel"
+            maxlength="20"
+            placeholder="03XXXXXXXXX">
         </label>
+
       </div>
 
       <div class="two">
+
         <label>
           Sender name
           <input id="sender-name" required maxlength="80">
@@ -105,8 +117,13 @@
 
         <label>
           Sender phone number
-          <input id="sender-phone" required inputmode="tel" maxlength="20">
+          <input
+            id="sender-phone"
+            required
+            inputmode="tel"
+            maxlength="20">
         </label>
+
       </div>
 
       <label>
@@ -116,21 +133,29 @@
 
       <label>
         Payment screenshot
-        <input id="receipt" type="file" accept="image/png,image/jpeg,image/webp" required>
+        <input
+          id="receipt"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          required>
       </label>
 
       <button class="btn" type="submit">
         Submit Payment for Verification
       </button>
 
-      <p id="order-message" class="message" aria-live="polite"></p>
+      <p
+        id="order-message"
+        class="message"
+        aria-live="polite">
+      </p>
 
     </form>
   </section>
 
   <p class="notice">
-    Orders are manually verified. A screenshot alone does not confirm payment.
-    Never share your account password or OTP.
+    Orders are manually verified. A screenshot alone does not
+    confirm payment. Never share your account password or OTP.
   </p>
 
 </main>
