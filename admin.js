@@ -46,6 +46,7 @@ async function refresh() {
     $("admin-services").querySelectorAll("[data-edit]").forEach(b => {
       b.onclick = () => {
         const s = svcs.find(x => x.id === b.dataset.edit);
+        if (!s) return;
 
         $("edit-service-id").value = s.id;
         $("new-service-name").value = s.name;
@@ -125,7 +126,7 @@ async function refresh() {
 
     $("orders-list").querySelectorAll("[data-status]").forEach(el => {
       const o = currentOrders.find(x => x.id === el.dataset.status);
-      el.value = o.status;
+      if (o) el.value = o.status;
     });
 
     // VIEW RECEIPT
@@ -133,7 +134,7 @@ async function refresh() {
       b.onclick = async () => {
         const o = currentOrders.find(x => x.id === b.dataset.receipt);
 
-        if (!o.receipt_path) {
+        if (!o || !o.receipt_path) {
           alert("No receipt attached.");
           return;
         }
@@ -151,58 +152,63 @@ async function refresh() {
     $("orders-list").querySelectorAll("[data-save]").forEach(b => {
       b.onclick = async () => {
         const id = b.dataset.save;
+        const order = currentOrders.find(x => x.id === id);
+
+        if (!order) return;
+
         const status = $(`[data-status="${id}"]`).value;
-        const note = $(`[data-note="${id}"]`).value;
+        const note = $(`[data-note="${id}"]`).value.trim();
         const file = $(`[data-delivery="${id}"]`).files[0];
 
-        let delivery_url =
-          currentOrders.find(x => x.id === id).delivery_url;
+        b.disabled = true;
+        b.textContent = "Saving...";
 
-        if (file) {
-          if (file.size > 20 * 1024 * 1024) {
-            alert("Delivery file must be 20 MB or smaller.");
-            return;
+        try {
+          let delivery_path = order.delivery_path || null;
+
+          if (file) {
+            if (file.size > 20 * 1024 * 1024) {
+              alert("Delivery file must be 20 MB or smaller.");
+              return;
+            }
+
+            const ext = (file.name.split(".").pop() || "bin")
+              .replace(/[^a-z0-9]/gi, "");
+
+            const path = `${id}/${crypto.randomUUID()}.${ext}`;
+
+            const up = await db.storage
+              .from("delivery-files")
+              .upload(path, file, { upsert: false });
+
+            if (up.error) {
+              alert("Delivery Upload Error: " + up.error.message);
+              return;
+            }
+
+            delivery_path = path;
           }
 
-          const ext = (file.name.split(".").pop() || "bin")
-            .replace(/[^a-z0-9]/gi, "");
+          const { error } = await db.from("orders")
+            .update({
+              status,
+              admin_note: note,
+              delivery_path
+            })
+            .eq("id", id);
 
-          const path = `${id}/${crypto.randomUUID()}.${ext}`;
-
-          const up = await db.storage
-            .from("delivery-files")
-            .upload(path, file, { upsert: false });
-
-          if (up.error) {
-            alert("Delivery Upload Error: " + up.error.message);
-            return;
+          if (error) {
+            alert("Order Update Error: " + error.message);
+          } else {
+            alert("Order updated successfully.");
+            await refresh();
           }
 
-          const signed = await db.storage
-            .from("delivery-files")
-            .createSignedUrl(path, 604800);
-
-          if (signed.error) {
-            alert("Delivery Link Error: " + signed.error.message);
-            return;
-          }
-
-          delivery_url = signed.data.signedUrl;
-        }
-
-        const { error } = await db.from("orders")
-          .update({
-            status,
-            admin_note: note,
-            delivery_url
-          })
-          .eq("id", id);
-
-        if (error) {
-          alert("Order Update Error: " + error.message);
-        } else {
-          alert("Order updated.");
-          refresh();
+        } catch (err) {
+          alert("Error: " + err.message);
+        } finally {
+          b.disabled = false;
+          b.textContent = "Save order";
         }
       };
     });
@@ -294,7 +300,7 @@ $("service-form").onsubmit = async e => {
   if (!result.error) {
     $("service-form").reset();
     $("edit-service-id").value = "";
-    refresh();
+    await refresh();
   }
 };
 
