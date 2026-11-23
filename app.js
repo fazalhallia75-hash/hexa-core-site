@@ -1,4 +1,3 @@
-
 const $ = (id) => document.getElementById(id);
 
 const cfg = window.HEXA_CONFIG;
@@ -32,8 +31,6 @@ async function startApp() {
   }
 
   await loadServices();
-
-  // AUTO SELECT SERVICE FROM SERVICES PAGE
   await selectServiceFromURL();
 }
 
@@ -76,7 +73,6 @@ async function loadServices() {
       return;
     }
 
-    // ONLY 4 SERVICES ON HOME PAGE
     const homeServices = data.slice(0, 4);
 
     root.innerHTML = "";
@@ -215,6 +211,180 @@ async function selectServiceFromURL() {
   }
 }
 
+// COPY ORDER REFERENCE
+async function copyOrderReference(reference, button) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(reference);
+    } else {
+      const textarea = document.createElement("textarea");
+
+      textarea.value = reference;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const copied = document.execCommand("copy");
+
+      textarea.remove();
+
+      if (!copied) {
+        throw new Error("Copy was not successful.");
+      }
+    }
+
+    button.textContent = "COPIED ✓";
+    button.style.background = "#15803D";
+
+  } catch (error) {
+    console.error("Copy Error:", error);
+
+    button.textContent = "COPY FAILED";
+    button.style.background = "#991B1B";
+  }
+}
+
+// SHOW SUCCESSFUL ORDER REFERENCE
+function showOrderSuccess(reference) {
+  const msg = $("order-message");
+
+  if (!msg) return;
+
+  msg.replaceChildren();
+
+  const card = document.createElement("div");
+
+  card.style.cssText = `
+    width: 100%;
+    box-sizing: border-box;
+    background: #080808;
+    border: 2px solid #DC2626;
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 14px;
+    color: #FFFFFF;
+    text-align: left;
+  `;
+
+  const heading = document.createElement("div");
+
+  heading.textContent =
+    "⚠️ IMPORTANT: SAVE YOUR ORDER ID";
+
+  heading.style.cssText = `
+    color: #EF4444;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  `;
+
+  const divider = document.createElement("div");
+
+  divider.style.cssText = `
+    height: 1px;
+    background: #991B1B;
+    margin-bottom: 14px;
+  `;
+
+  const label = document.createElement("div");
+
+  label.textContent = "YOUR ORDER REFERENCE";
+
+  label.style.cssText = `
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 9px;
+    letter-spacing: 1px;
+  `;
+
+  const referenceRow = document.createElement("div");
+
+  referenceRow.style.cssText = `
+    display: flex;
+    align-items: stretch;
+    gap: 9px;
+    flex-wrap: wrap;
+  `;
+
+  const referenceBox = document.createElement("div");
+
+  referenceBox.textContent = reference;
+
+  referenceBox.style.cssText = `
+    flex: 1 1 170px;
+    min-width: 0;
+    box-sizing: border-box;
+    background: #191919;
+    border: 1px solid #555555;
+    border-radius: 9px;
+    padding: 15px 12px;
+    color: #FFFFFF;
+    font-size: clamp(18px, 5vw, 25px);
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: center;
+  `;
+
+  const copyButton = document.createElement("button");
+
+  copyButton.type = "button";
+  copyButton.textContent = "COPY";
+
+  copyButton.style.cssText = `
+    flex: 0 0 auto;
+    min-width: 85px;
+    border: 1px solid #EF4444;
+    border-radius: 9px;
+    padding: 12px 15px;
+    background: #DC2626;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  `;
+
+  copyButton.addEventListener("click", () => {
+    copyOrderReference(reference, copyButton);
+  });
+
+  const note = document.createElement("p");
+
+  note.textContent =
+    "Save this code to track your order later.";
+
+  note.style.cssText = `
+    color: #D1D1D1;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 14px 0 0;
+  `;
+
+  card.append(
+    heading,
+    divider,
+    label
+  );
+
+  referenceRow.append(
+    referenceBox,
+    copyButton
+  );
+
+  card.append(
+    referenceRow,
+    note
+  );
+
+  msg.appendChild(card);
+  msg.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 // CUSTOMER ORDER SUBMISSION
 const orderForm = $("order-form");
 
@@ -323,8 +493,8 @@ if (orderForm) {
         return;
       }
 
-      msg.textContent =
-        "Order submitted. Reference: " + orderId;
+      // SHOW LARGE ORDER REFERENCE WITH COPY BUTTON
+      showOrderSuccess(orderId);
 
       orderForm.reset();
 
