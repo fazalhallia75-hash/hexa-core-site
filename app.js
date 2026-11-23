@@ -4,7 +4,7 @@ const $ = (id) => document.getElementById(id);
 const cfg = window.HEXA_CONFIG;
 const db = window.hexaSupabase;
 
-// CHECK CONFIGURATION
+// START WEBSITE
 async function startApp() {
   const root = $("service-list");
 
@@ -50,7 +50,7 @@ function getServiceImageUrl(path) {
   return data?.publicUrl || "";
 }
 
-// LOAD SERVICES
+// LOAD HOME PAGE SERVICES
 async function loadServices() {
   const root = $("service-list");
 
@@ -76,9 +76,12 @@ async function loadServices() {
       return;
     }
 
+    // ONLY 4 SERVICES ON HOME PAGE
+    const homeServices = data.slice(0, 4);
+
     root.innerHTML = "";
 
-    data.forEach((service) => {
+    homeServices.forEach((service) => {
       const card = document.createElement("article");
       card.className = "service-card";
 
@@ -88,12 +91,7 @@ async function loadServices() {
         image.src = getServiceImageUrl(service.image_path);
         image.alt = service.name;
         image.loading = "lazy";
-
-        image.style.width = "100%";
-        image.style.height = "190px";
-        image.style.objectFit = "cover";
-        image.style.borderRadius = "14px";
-        image.style.marginBottom = "12px";
+        image.className = "service-image";
 
         image.onerror = () => {
           image.style.display = "none";
@@ -101,6 +99,9 @@ async function loadServices() {
 
         card.appendChild(image);
       }
+
+      const content = document.createElement("div");
+      content.className = "service-content";
 
       const heading = document.createElement("h3");
       heading.textContent = service.name;
@@ -126,12 +127,16 @@ async function loadServices() {
       button.addEventListener("click", () => {
         fillSelectedService(service);
 
-        $("order-panel").scrollIntoView({
-          behavior: "smooth"
-        });
+        const panel = $("order-panel");
+
+        if (panel) {
+          panel.scrollIntoView({
+            behavior: "smooth"
+          });
+        }
       });
 
-      card.append(
+      content.append(
         heading,
         description,
         price,
@@ -139,6 +144,7 @@ async function loadServices() {
         button
       );
 
+      card.appendChild(content);
       root.appendChild(card);
     });
 
@@ -152,9 +158,17 @@ async function loadServices() {
 
 // FILL ORDER FORM
 function fillSelectedService(service) {
-  $("service-id").value = service.id;
-  $("service-name").value = service.name;
-  $("service-price").value = service.price;
+  if ($("service-id")) {
+    $("service-id").value = service.id;
+  }
+
+  if ($("service-name")) {
+    $("service-name").value = service.name;
+  }
+
+  if ($("service-price")) {
+    $("service-price").value = service.price;
+  }
 
   if ($("order-message")) {
     $("order-message").textContent = "";
@@ -209,6 +223,7 @@ if (orderForm) {
     event.preventDefault();
 
     const msg = $("order-message");
+
     msg.textContent = "Submitting...";
 
     try {
