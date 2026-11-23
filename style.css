@@ -74,7 +74,7 @@ select {
   border-radius: 10px;
 }
 
-/* BRAND VERIFIED TICK */
+/* VERIFIED TICK */
 
 .brand-name {
   display: inline-flex;
@@ -107,6 +107,8 @@ select {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) translate(-1px, -1px);
 }
+
+/* NAVIGATION */
 
 nav {
   display: flex;
@@ -212,7 +214,7 @@ h3 {
   opacity: .8;
 }
 
-/* SERVICES - DEFAULT */
+/* SERVICES GRID */
 
 .service-grid {
   display: grid;
@@ -240,7 +242,7 @@ h3 {
   box-shadow: 0 18px 38px rgba(0, 0, 0, .15);
 }
 
-/* HOMEPAGE ONLY - SERVICE GRID */
+/* HOMEPAGE SERVICE GRID */
 
 #service-list.service-grid {
   display: grid !important;
@@ -298,7 +300,64 @@ h3 {
   border-radius: 8px;
 }
 
-/* PRICES */
+/* ALL SERVICES PAGE */
+
+#all-service-list.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+  width: 100%;
+  margin: 18px 0 35px;
+}
+
+#all-service-list .service-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+
+#all-service-list .service-card img,
+#all-service-list .service-card .service-image {
+  display: block;
+  width: 100%;
+  height: 150px;
+  min-height: 150px;
+  max-height: 150px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 11px;
+  margin: 0 0 12px;
+}
+
+#all-service-list .service-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#all-service-list .service-card h3 {
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+#all-service-list .service-card p {
+  overflow-wrap: anywhere;
+}
+
+#all-service-list .service-card .service-price {
+  display: block;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 10px 0;
+}
+
+#all-service-list .service-card .btn {
+  display: block;
+  width: 100%;
+}
+
+/* PRICE */
 
 .price {
   display: block;
@@ -553,7 +612,7 @@ button:disabled {
     gap: 14px;
   }
 
-  /* ANDROID HOMEPAGE - TWO COLUMN LAYOUT */
+  /* HOMEPAGE MOBILE */
 
   #service-list.service-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -594,7 +653,51 @@ button:disabled {
     font-size: 11px !important;
     width: 100%;
   }
+
+  /* ALL SERVICES MOBILE */
+
+  #all-service-list.service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #all-service-list .service-card {
+    padding: 9px;
+    border-radius: 13px;
+  }
+
+  #all-service-list .service-card img,
+  #all-service-list .service-card .service-image {
+    height: 105px;
+    min-height: 105px;
+    max-height: 105px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  #all-service-list .service-card h3 {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  #all-service-list .service-card p {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  #all-service-list .service-card .service-price {
+    font-size: 16px;
+    margin: 7px 0;
+  }
+
+  #all-service-list .service-card .btn {
+    padding: 7px 4px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
 }
+
+/* REDUCE MOTION */
 
 @media (prefers-reduced-motion: reduce) {
   *,
