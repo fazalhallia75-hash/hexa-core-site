@@ -74,6 +74,30 @@ select {
   border-radius: 10px;
 }
 
+/* BRAND VERIFIED TICK */
+
+.brand-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.verified-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #1877f2;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 nav {
   display: flex;
   gap: 18px;
@@ -95,7 +119,7 @@ nav a:hover {
   opacity: .55;
 }
 
-/* MAIN BANNER */
+/* WEBSITE BANNER */
 
 .site-banner {
   width: 100%;
