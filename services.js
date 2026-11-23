@@ -83,6 +83,8 @@ function renderService(service) {
 }
 
 async function loadAllServices() {
+  if (!list) return;
+
   if (!db) {
     list.textContent = "Database configuration not found.";
     return;
@@ -105,7 +107,19 @@ async function loadAllServices() {
       return;
     }
 
-    list.innerHTML = data.map(renderService).join("");
+    // Show only the latest 4 active services
+    const visibleServices = data.slice(0, 4);
+
+    list.innerHTML =
+      visibleServices.map(renderService).join("") +
+
+      `
+        <div class="see-more-wrap" style="grid-column: 1 / -1;">
+          <a class="btn" href="index.html">
+            SEE MORE
+          </a>
+        </div>
+      `;
 
   } catch (error) {
     console.error("Services loading error:", error);
@@ -113,7 +127,9 @@ async function loadAllServices() {
     list.innerHTML =
       '<p class="muted">Unable to load services. Please refresh the page.</p>';
 
-    message.textContent = error.message || "Something went wrong.";
+    if (message) {
+      message.textContent = error.message || "Something went wrong.";
+    }
   }
 }
 
