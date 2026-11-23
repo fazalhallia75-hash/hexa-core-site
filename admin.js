@@ -31,9 +31,7 @@ function showMessage(id, message) {
 function getServiceImageUrl(path) {
   if (!path) return "";
 
-  if (/^https?:\/\//i.test(path)) {
-    return path;
-  }
+  if (/^https?:\/\//i.test(path)) return path;
 
   const { data } = db.storage
     .from("service-images")
@@ -207,7 +205,6 @@ async function loadServices() {
 
     return `
       <div class="admin-row">
-
         <div>
           ${imageUrl ? `
             <img
@@ -230,9 +227,7 @@ async function loadServices() {
             Rs. ${money(s.price)} · ${esc(s.duration)}
           </div>
 
-          <div class="muted">
-            ${esc(s.description)}
-          </div>
+          <div class="muted">${esc(s.description)}</div>
 
           <div class="muted">
             ${s.is_active ? "ACTIVE" : "HIDDEN"}
@@ -240,9 +235,7 @@ async function loadServices() {
         </div>
 
         <div>
-          <button
-            class="btn secondary"
-            data-edit="${esc(s.id)}">
+          <button class="btn secondary" data-edit="${esc(s.id)}">
             Edit
           </button>
 
@@ -253,7 +246,6 @@ async function loadServices() {
             ${s.is_active ? "Hide" : "Activate"}
           </button>
         </div>
-
       </div>
     `;
   }).join("") || "No services yet.";
@@ -286,6 +278,7 @@ async function loadServices() {
           : ""
       );
 
+      showMessage("service-message", "Editing: " + s.name);
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
   });
@@ -310,7 +303,7 @@ async function loadServices() {
   });
 }
 
-// IMAGE FILE PREVIEW
+// IMAGE PREVIEW
 if ($("service-image")) {
   $("service-image").addEventListener("change", () => {
     const file = $("service-image").files?.[0];
@@ -330,19 +323,13 @@ if ($("service-image")) {
     }
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      showMessage(
-        "service-message",
-        "Only JPG, PNG and WEBP images are allowed."
-      );
+      showMessage("service-message", "Only JPG, PNG and WEBP images are allowed.");
       $("service-image").value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      showMessage(
-        "service-message",
-        "Image size must be 5 MB or less."
-      );
+      showMessage("service-message", "Image size must be 5 MB or less.");
       $("service-image").value = "";
       return;
     }
@@ -683,18 +670,7 @@ $("login-form").onsubmit = async e => {
 async function checkSession() {
   const { data, error } = await db.auth.getUser();
 
-  if (error || !data?.user) return;
-
-  // Verify admin membership before showing dashboard
-  const { data: adminRecord, error: adminError } = await db
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-
-  if (adminError || !adminRecord) {
-    await db.auth.signOut();
-    showMessage("login-message", "This account is not authorized as an admin.");
+  if (error || !data?.user) {
     $("login-panel").hidden = false;
     $("dashboard").hidden = true;
     return;
@@ -758,15 +734,10 @@ $("service-form").onsubmit = async e => {
       throw new Error("Please enter a valid price.");
     }
 
-    // Upload a newly selected image
     if (imageFile) {
       showMessage("service-message", "Uploading image...");
-
-      const uploadedPath = await uploadServiceImage(imageFile);
-      payload.image_path = uploadedPath;
-
+      payload.image_path = await uploadServiceImage(imageFile);
     } else if (!id) {
-      // New service without an image
       payload.image_path = null;
     }
 
