@@ -4,7 +4,7 @@ const $ = (id) => document.getElementById(id);
 const cfg = window.HEXA_CONFIG;
 const db = window.hexaSupabase;
 
-// Check configuration
+// CHECK CONFIGURATION
 async function startApp() {
   const root = $("service-list");
 
@@ -25,29 +25,37 @@ async function startApp() {
   await loadServices();
 }
 
-// Load services
+// GET SERVICE IMAGE
+function getServiceImageUrl(path) {
+  if (!path) return "";
+
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const { data } = db.storage
+    .from("service-images")
+    .getPublicUrl(path);
+
+  return data?.publicUrl || "";
+}
+
+// LOAD SERVICES
 async function loadServices() {
   const root = $("service-list");
 
   root.textContent = "Loading services...";
 
   try {
-    const result = await db
+    const { data, error } = await db
       .from("services")
-      .select("id,name,description,price,duration")
+      .select("id,name,description,price,duration,image_path")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
-    if (result.error) {
-      console.error("Supabase Services Error:", result.error);
-
-      root.textContent =
-        "Supabase Error: " + result.error.message;
-
+    if (error) {
+      console.error("Supabase Services Error:", error);
+      root.textContent = "Supabase Error: " + error.message;
       return;
     }
-
-    const data = result.data;
 
     if (!data || data.length === 0) {
       root.textContent = "No active services found.";
@@ -60,22 +68,48 @@ async function loadServices() {
       const card = document.createElement("article");
       card.className = "service-card";
 
+      // SERVICE IMAGE
+      if (service.image_path) {
+        const image = document.createElement("img");
+
+        image.src = getServiceImageUrl(service.image_path);
+        image.alt = service.name;
+        image.loading = "lazy";
+
+        image.style.width = "100%";
+        image.style.height = "190px";
+        image.style.objectFit = "cover";
+        image.style.borderRadius = "14px";
+        image.style.marginBottom = "12px";
+
+        image.onerror = () => {
+          image.style.display = "none";
+        };
+
+        card.appendChild(image);
+      }
+
+      // SERVICE NAME
       const heading = document.createElement("h3");
       heading.textContent = service.name;
 
+      // DESCRIPTION
       const description = document.createElement("p");
       description.className = "muted";
       description.textContent = service.description || "";
 
+      // PRICE
       const price = document.createElement("strong");
       price.className = "price";
       price.textContent =
         "Rs. " + Number(service.price).toLocaleString("en-PK");
 
+      // DURATION
       const duration = document.createElement("p");
       duration.className = "muted";
       duration.textContent = service.duration || "";
 
+      // SELECT BUTTON
       const button = document.createElement("button");
       button.className = "btn choose";
       button.type = "button";
@@ -110,7 +144,7 @@ async function loadServices() {
   }
 }
 
-// Customer order submission
+// CUSTOMER ORDER SUBMISSION
 $("order-form").addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -229,5 +263,5 @@ $("order-form").addEventListener("submit", async (event) => {
   }
 });
 
-// Start website
+// START WEBSITE
 startApp();
