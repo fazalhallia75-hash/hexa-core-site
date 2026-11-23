@@ -15,7 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=2"></script>
+  <script src="config.js"></script>
   <script defer src="app.js?v=12"></script>
 </head>
 
@@ -38,7 +38,6 @@
   </nav>
 </header>
 
-<!-- WEBSITE BANNER -->
 <section class="site-banner">
   <img src="assets/banner.jpg" alt="HEXA CORE Banner">
 </section>
@@ -67,6 +66,10 @@
 
     <div id="service-list" class="service-grid">
       <p class="muted">Loading services...</p>
+    </div>
+
+    <div class="see-more-wrap">
+      <a class="btn" href="services.html">SEE MORE</a>
     </div>
 
   </section>
@@ -99,11 +102,7 @@
 
       <label>
         Selected service
-        <input
-          id="service-name"
-          readonly
-          required
-          placeholder="Select a service first">
+        <input id="service-name" readonly required placeholder="Select a service first">
       </label>
 
       <label>
@@ -115,20 +114,12 @@
 
         <label>
           Your name
-          <input
-            id="customer-name"
-            required
-            maxlength="80">
+          <input id="customer-name" required maxlength="80">
         </label>
 
         <label>
           Your phone number
-          <input
-            id="customer-phone"
-            required
-            inputmode="tel"
-            maxlength="20"
-            placeholder="03XXXXXXXXX">
+          <input id="customer-phone" required inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX">
         </label>
 
       </div>
@@ -137,49 +128,31 @@
 
         <label>
           Sender name
-          <input
-            id="sender-name"
-            required
-            maxlength="80">
+          <input id="sender-name" required maxlength="80">
         </label>
 
         <label>
           Sender phone number
-          <input
-            id="sender-phone"
-            required
-            inputmode="tel"
-            maxlength="20">
+          <input id="sender-phone" required inputmode="tel" maxlength="20">
         </label>
 
       </div>
 
       <label>
         Transaction ID
-        <input
-          id="transaction-id"
-          required
-          maxlength="100">
+        <input id="transaction-id" required maxlength="100">
       </label>
 
       <label>
         Payment screenshot
-        <input
-          id="receipt"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          required>
+        <input id="receipt" type="file" accept="image/png,image/jpeg,image/webp" required>
       </label>
 
       <button class="btn" type="submit">
         SUBMIT PAYMENT
       </button>
 
-      <p
-        id="order-message"
-        class="message"
-        aria-live="polite">
-      </p>
+      <p id="order-message" class="message" aria-live="polite"></p>
 
     </form>
 
@@ -192,31 +165,22 @@
 
 </main>
 
-<!-- FOOTER -->
 <footer>
 
-  <p>
-    HEXA CORE · Customer Support
-  </p>
+  <p>HEXA CORE · Customer Support</p>
 
   <p>
     <a id="support-link" href="#">WhatsApp Support</a>
   </p>
 
   <p>
-    <a
-      href="https://whatsapp.com/channel/0029VbC2BqyG8l55TOF4Wa1i"
-      target="_blank"
-      rel="noopener noreferrer">
+    <a href="https://whatsapp.com/channel/0029VbC2BqyG8l55TOF4Wa1i" target="_blank" rel="noopener noreferrer">
       WhatsApp Channel
     </a>
 
     &nbsp; | &nbsp;
 
-    <a
-      href="https://chat.whatsapp.com/HeIr9N2FBm9EFULVkDnEP3?s=cl&p=a&iam=2"
-      target="_blank"
-      rel="noopener noreferrer">
+    <a href="https://chat.whatsapp.com/HeIr9N2FBm9EFULVkDnEP3?s=cl&p=a&iam=2" target="_blank" rel="noopener noreferrer">
       WhatsApp Group
     </a>
   </p>
