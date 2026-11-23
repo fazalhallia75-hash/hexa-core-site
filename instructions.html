@@ -1,0 +1,274 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+
+  <title>HEXA CORE — Order Instructions</title>
+
+  <link rel="stylesheet" href="style.css?v=17">
+
+  <style>
+    .instructions-page {
+      max-width: 900px;
+      margin: 35px auto;
+      padding: 20px;
+    }
+
+    .instructions-heading {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .instructions-heading h1 {
+      font-size: clamp(25px, 5vw, 38px);
+      margin-bottom: 10px;
+    }
+
+    .instructions-heading p {
+      color: #666;
+    }
+
+    .instruction-list {
+      display: grid;
+      gap: 15px;
+    }
+
+    .instruction-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid #e5e5e5;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.04);
+    }
+
+    .instruction-number {
+      min-width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: #080808;
+      color: white;
+      font-weight: bold;
+    }
+
+    .instruction-item h3 {
+      margin: 2px 0 7px;
+    }
+
+    .instruction-item p {
+      margin: 0;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .instruction-note {
+      margin-top: 22px;
+      padding: 17px;
+      background: #f3f7ff;
+      border: 1px solid #d8e5ff;
+      border-radius: 14px;
+      line-height: 1.6;
+    }
+
+    .instruction-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .instruction-actions .btn {
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .verified-tick {
+      display: inline-grid;
+      place-items: center;
+      width: 19px;
+      height: 19px;
+      margin-left: 5px;
+      border-radius: 50%;
+      background: #1685f8;
+      color: white;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    @media(max-width:600px) {
+      .instructions-page {
+        padding: 14px;
+        margin: 20px auto;
+      }
+
+      .instruction-item {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container">
+
+      <a href="index.html" class="brand">
+        HEXA CORE
+        <span class="verified-tick">✓</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html">HOME</a>
+        <a href="services.html">ALL SERVICES</a>
+        <a href="instructions.html">INSTRUCTIONS</a>
+        <a href="track.html">TRACK ORDER</a>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main class="instructions-page">
+
+    <div class="instructions-heading">
+      <h1>ORDER INSTRUCTIONS</h1>
+      <p>
+        Follow these simple steps to place your HEXA CORE order.
+      </p>
+    </div>
+
+    <div class="instruction-list">
+
+      <article class="instruction-item">
+        <div class="instruction-number">01</div>
+        <div>
+          <h3>Select Your Service</h3>
+          <p>
+            Visit our Home Page or All Services Page
+            and select the service you want.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">02</div>
+        <div>
+          <h3>Check Service Details</h3>
+          <p>
+            Carefully check the service name, description
+            and price before placing your order.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">03</div>
+        <div>
+          <h3>Make Payment</h3>
+          <p>
+            Check the official JazzCash account details
+            displayed on our website before making payment.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">04</div>
+        <div>
+          <h3>Fill Order Form</h3>
+          <p>
+            Enter your name, phone number, sender details
+            and payment transaction ID correctly.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">05</div>
+        <div>
+          <h3>Upload Payment Receipt</h3>
+          <p>
+            Upload a clear payment receipt in JPG, PNG
+            or WEBP format. Maximum file size is 5 MB.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">06</div>
+        <div>
+          <h3>Submit Your Order</h3>
+          <p>
+            Submit the form and save your order Reference ID
+            for future tracking.
+          </p>
+        </div>
+      </article>
+
+      <article class="instruction-item">
+        <div class="instruction-number">07</div>
+        <div>
+          <h3>Track Your Order</h3>
+          <p>
+            Open Track Order and enter the required details
+            to check your order status.
+          </p>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="instruction-note">
+      <strong>IMPORTANT NOTE</strong>
+      <p>
+        Always verify payment details before sending money.
+        Your order will be reviewed by the admin.
+        Keep your Reference ID safe.
+      </p>
+    </div>
+
+    <div class="instruction-actions">
+      <a class="btn" href="index.html#order-panel">
+        PLACE YOUR ORDER
+      </a>
+
+      <a class="btn" href="services.html">
+        EXPLORE SERVICES
+      </a>
+
+      <a class="btn" href="track.html">
+        TRACK ORDER
+      </a>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 HEXA CORE. All Rights Reserved.</p>
+
+      <div>
+        <a href="index.html">HOME</a>
+        |
+        <a href="services.html">SERVICES</a>
+        |
+        <a href="instructions.html">INSTRUCTIONS</a>
+        |
+        <a href="track.html">TRACK ORDER</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
