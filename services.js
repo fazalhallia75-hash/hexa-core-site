@@ -107,19 +107,8 @@ async function loadAllServices() {
       return;
     }
 
-    // Show only the latest 4 active services
-    const visibleServices = data.slice(0, 4);
-
-    list.innerHTML =
-      visibleServices.map(renderService).join("") +
-
-      `
-        <div class="see-more-wrap" style="grid-column: 1 / -1;">
-          <a class="btn" href="index.html">
-            SEE MORE
-          </a>
-        </div>
-      `;
+    // SHOW ALL ACTIVE SERVICES
+    list.innerHTML = data.map(renderService).join("");
 
   } catch (error) {
     console.error("Services loading error:", error);
