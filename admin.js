@@ -27,6 +27,141 @@ function showMessage(id, message) {
   if (el) el.textContent = message;
 }
 
+// COMPACT BULK DELETE BUTTONS
+function addBulkDeleteControls() {
+  const sections = [
+    {
+      listId: "orders-list",
+      table: "orders",
+      buttonId: "delete-all-orders",
+      label: "DELETE ALL ORDERS",
+      confirmText: "DELETE ORDERS",
+      message: "All orders will be permanently deleted. Continue?"
+    },
+    {
+      listId: "feedback-list",
+      table: "feedback",
+      buttonId: "delete-all-feedback",
+      label: "DELETE ALL FEEDBACK",
+      confirmText: "DELETE FEEDBACK",
+      message: "All feedback will be permanently deleted. Continue?"
+    }
+  ];
+
+  sections.forEach(section => {
+    const list = $(section.listId);
+    if (!list || $(section.buttonId)) return;
+
+    const button = document.createElement("button");
+
+    button.id = section.buttonId;
+    button.type = "button";
+    button.textContent = section.label;
+
+    button.style.cssText = `
+      background: #ffffff;
+      color: #dc2626;
+      border: 1px solid #111111;
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 0 0 12px 0;
+      width: auto;
+      display: inline-block;
+    `;
+
+    list.parentNode.insertBefore(button, list);
+
+    button.onclick = async () => {
+      try {
+        const { data: userData, error: userError } =
+          await db.auth.getUser();
+
+        if (userError || !userData?.user) {
+          throw new Error("Admin login required.");
+        }
+
+        button.disabled = true;
+        button.textContent = "LOADING...";
+
+        const ids = [];
+        let offset = 0;
+        const pageSize = 500;
+
+        while (true) {
+          const { data, error } = await db
+            .from(section.table)
+            .select("id")
+            .order("created_at", { ascending: true })
+            .range(offset, offset + pageSize - 1);
+
+          if (error) throw error;
+
+          const page = data || [];
+          ids.push(...page.map(item => item.id));
+
+          if (page.length < pageSize) break;
+
+          offset += pageSize;
+        }
+
+        if (!ids.length) {
+          alert("No records found.");
+          return;
+        }
+
+        const firstConfirm = confirm(
+          `${section.message}\n\nTotal records: ${ids.length}`
+        );
+
+        if (!firstConfirm) return;
+
+        const typed = prompt(
+          `Type exactly: ${section.confirmText}`
+        );
+
+        if (typed !== section.confirmText) {
+          alert("Confirmation did not match. Nothing was deleted.");
+          return;
+        }
+
+        button.textContent = "DELETING...";
+
+        for (let i = 0; i < ids.length; i += 100) {
+          const batch = ids.slice(i, i + 100);
+
+          const { error } = await db
+            .from(section.table)
+            .delete()
+            .in("id", batch);
+
+          if (error) throw error;
+        }
+
+        alert(`Deleted ${ids.length} records successfully.`);
+
+        if (section.table === "orders") {
+          currentOrders = [];
+          knownOrderIds.clear();
+          await loadOrders();
+        } else {
+          currentFeedback = [];
+          await loadFeedback();
+        }
+
+      } catch (err) {
+        console.error("Bulk delete error:", err);
+        alert("Delete Error: " + err.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = section.label;
+      }
+    };
+  });
+}
+
 // SERVICE IMAGE HELPERS
 function getServiceImageUrl(path) {
   if (!path) return "";
@@ -678,6 +813,9 @@ async function checkSession() {
 
   $("login-panel").hidden = true;
   $("dashboard").hidden = false;
+
+  // ADD BULK DELETE BUTTONS
+  addBulkDeleteControls();
 
   if (!document.getElementById("notification-enable")) {
     const button = document.createElement("button");
