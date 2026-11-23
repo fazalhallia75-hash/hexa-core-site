@@ -73,6 +73,7 @@ async function loadServices() {
       return;
     }
 
+    // ONLY 4 SERVICES ON HOME PAGE
     const homeServices = data.slice(0, 4);
 
     root.innerHTML = "";
@@ -215,11 +216,11 @@ async function selectServiceFromURL() {
 async function copyOrderReference(reference, button) {
   try {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(reference);
+      await navigator.clipboard.writeText(String(reference));
     } else {
       const textarea = document.createElement("textarea");
 
-      textarea.value = reference;
+      textarea.value = String(reference);
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
 
@@ -236,13 +237,17 @@ async function copyOrderReference(reference, button) {
     }
 
     button.textContent = "COPIED ✓";
-    button.style.background = "#15803D";
+    button.style.background = "#FFFFFF";
+    button.style.border = "1px solid #000000";
+    button.style.color = "#DC2626";
 
   } catch (error) {
     console.error("Copy Error:", error);
 
     button.textContent = "COPY FAILED";
-    button.style.background = "#991B1B";
+    button.style.background = "#FFFFFF";
+    button.style.border = "1px solid #000000";
+    button.style.color = "#DC2626";
   }
 }
 
@@ -254,53 +259,59 @@ function showOrderSuccess(reference) {
 
   msg.replaceChildren();
 
+  // MAIN WHITE CARD
   const card = document.createElement("div");
 
   card.style.cssText = `
     width: 100%;
     box-sizing: border-box;
-    background: #080808;
-    border: 2px solid #DC2626;
+    background: #FFFFFF;
+    border: 2px solid #000000;
     border-radius: 14px;
-    padding: 16px;
+    padding: 17px;
     margin-top: 14px;
-    color: #FFFFFF;
+    color: #111111;
     text-align: left;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
   `;
 
+  // WARNING HEADING
   const heading = document.createElement("div");
 
   heading.textContent =
     "⚠️ IMPORTANT: SAVE YOUR ORDER ID";
 
   heading.style.cssText = `
-    color: #EF4444;
+    color: #DC2626;
     font-size: 17px;
     font-weight: 700;
     line-height: 1.5;
     margin-bottom: 14px;
   `;
 
+  // DIVIDER
   const divider = document.createElement("div");
 
   divider.style.cssText = `
     height: 1px;
-    background: #991B1B;
+    background: #000000;
     margin-bottom: 14px;
   `;
 
+  // REFERENCE LABEL
   const label = document.createElement("div");
 
   label.textContent = "YOUR ORDER REFERENCE";
 
   label.style.cssText = `
-    color: #FFFFFF;
+    color: #111111;
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 9px;
     letter-spacing: 1px;
   `;
 
+  // REFERENCE ROW
   const referenceRow = document.createElement("div");
 
   referenceRow.style.cssText = `
@@ -310,19 +321,20 @@ function showOrderSuccess(reference) {
     flex-wrap: wrap;
   `;
 
+  // ORDER ID BOX
   const referenceBox = document.createElement("div");
 
-  referenceBox.textContent = reference;
+  referenceBox.textContent = String(reference);
 
   referenceBox.style.cssText = `
     flex: 1 1 170px;
     min-width: 0;
     box-sizing: border-box;
-    background: #191919;
-    border: 1px solid #555555;
+    background: #F3F3F3;
+    border: 1px solid #000000;
     border-radius: 9px;
     padding: 15px 12px;
-    color: #FFFFFF;
+    color: #111111;
     font-size: clamp(18px, 5vw, 25px);
     font-weight: 700;
     line-height: 1.4;
@@ -331,6 +343,7 @@ function showOrderSuccess(reference) {
     text-align: center;
   `;
 
+  // COPY BUTTON
   const copyButton = document.createElement("button");
 
   copyButton.type = "button";
@@ -339,11 +352,11 @@ function showOrderSuccess(reference) {
   copyButton.style.cssText = `
     flex: 0 0 auto;
     min-width: 85px;
-    border: 1px solid #EF4444;
+    border: 1px solid #000000;
     border-radius: 9px;
     padding: 12px 15px;
-    background: #DC2626;
-    color: #FFFFFF;
+    background: #FFFFFF;
+    color: #DC2626;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -353,18 +366,20 @@ function showOrderSuccess(reference) {
     copyOrderReference(reference, copyButton);
   });
 
+  // INFORMATION TEXT
   const note = document.createElement("p");
 
   note.textContent =
     "Save this code to track your order later.";
 
   note.style.cssText = `
-    color: #D1D1D1;
+    color: #333333;
     font-size: 13px;
     line-height: 1.6;
     margin: 14px 0 0;
   `;
 
+  // ADD ELEMENTS
   card.append(
     heading,
     divider,
@@ -382,7 +397,11 @@ function showOrderSuccess(reference) {
   );
 
   msg.appendChild(card);
-  msg.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  msg.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
 }
 
 // CUSTOMER ORDER SUBMISSION
@@ -493,7 +512,7 @@ if (orderForm) {
         return;
       }
 
-      // SHOW LARGE ORDER REFERENCE WITH COPY BUTTON
+      // SHOW NEW ORDER REFERENCE CARD
       showOrderSuccess(orderId);
 
       orderForm.reset();
