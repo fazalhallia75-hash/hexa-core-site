@@ -8,15 +8,15 @@
 
   <title>HEXA CORE — Admin</title>
 
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script defer src="admin.js?v=5"></script>
+  <script src="config.js?v=2"></script>
+  <script defer src="admin.js?v=6"></script>
 </head>
 
 <body>
@@ -24,7 +24,10 @@
 <header class="top">
   <a class="brand" href="index.html">
     <img src="assets/logo.jpg" alt="HEXA CORE logo">
-    <span>HEXA CORE ADMIN</span>
+    <span class="brand-name">
+      HEXA CORE ADMIN
+      <span class="verified-tick" title="HEXA CORE">✓</span>
+    </span>
   </a>
 
   <nav>
@@ -80,7 +83,11 @@
 
     <div class="section-head">
       <h2>Dashboard</h2>
-      <button id="logout" class="btn secondary" type="button">
+
+      <button
+        id="logout"
+        class="btn secondary"
+        type="button">
         LOG OUT
       </button>
     </div>
@@ -162,13 +169,16 @@
 
       </form>
 
-      <div id="admin-services"></div>
+      <div id="admin-services">
+        Loading services...
+      </div>
 
     </section>
 
     <section class="panel">
 
       <h2>Customer Orders</h2>
+
       <p class="muted">
         Review customer orders and manage delivery.
       </p>
