@@ -6,6 +6,9 @@ const db = window.hexaSupabase;
 const list = $("all-service-list");
 const message = $("services-message");
 
+// USD CONVERSION RATE
+const USD_PKR_RATE = 280;
+
 const esc = value =>
   String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -17,6 +20,17 @@ const esc = value =>
 
 const money = value =>
   Number(value || 0).toLocaleString("en-PK");
+
+// FORMAT USD PRICE
+function getUsdPrice(pkrPrice) {
+  const amount = Number(pkrPrice);
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    return "USD unavailable";
+  }
+
+  return "≈ $" + (amount / USD_PKR_RATE).toFixed(2) + " USD";
+}
 
 function getImageUrl(path) {
   if (!path) return "";
@@ -68,6 +82,17 @@ function renderService(service) {
         <strong class="service-price">
           Rs. ${money(service.price)}
         </strong>
+
+        <small style="
+          display:block;
+          color:#16A34A;
+          font-size:11px;
+          font-weight:700;
+          margin-top:3px;
+          margin-bottom:10px;
+        ">
+          ${getUsdPrice(service.price)}
+        </small>
 
         <a
           class="btn"
