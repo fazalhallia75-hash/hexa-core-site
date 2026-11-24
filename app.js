@@ -1,3 +1,4 @@
+
 const $ = (id) => document.getElementById(id);
 
 const cfg = window.HEXA_CONFIG;
@@ -30,8 +31,41 @@ async function startApp() {
     $("support-link").textContent = "WhatsApp Support";
   }
 
+  await loadAnnouncementRibbon();
   await loadServices();
   await selectServiceFromURL();
+}
+
+// LOAD ANNOUNCEMENT RIBBON
+async function loadAnnouncementRibbon() {
+  const ribbon = $("announcement-ribbon");
+  const ribbonText = $("announcement-ribbon-text");
+
+  if (!ribbon || !ribbonText || !db) return;
+
+  try {
+    const { data, error } = await db
+      .from("site_announcement")
+      .select("message, enabled")
+      .eq("id", 1)
+      .single();
+
+    if (error) throw error;
+
+    const message = String(data?.message || "").trim();
+
+    if (data?.enabled && message) {
+      ribbonText.textContent = message;
+      ribbon.hidden = false;
+    } else {
+      ribbon.hidden = true;
+      ribbonText.textContent = "";
+    }
+
+  } catch (error) {
+    console.error("Announcement Ribbon Error:", error);
+    ribbon.hidden = true;
+  }
 }
 
 // GET SERVICE IMAGE
@@ -259,7 +293,6 @@ function showOrderSuccess(reference) {
 
   msg.replaceChildren();
 
-  // MAIN WHITE CARD
   const card = document.createElement("div");
 
   card.style.cssText = `
@@ -275,7 +308,6 @@ function showOrderSuccess(reference) {
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
   `;
 
-  // WARNING HEADING
   const heading = document.createElement("div");
 
   heading.textContent =
@@ -289,7 +321,6 @@ function showOrderSuccess(reference) {
     margin-bottom: 14px;
   `;
 
-  // DIVIDER
   const divider = document.createElement("div");
 
   divider.style.cssText = `
@@ -298,7 +329,6 @@ function showOrderSuccess(reference) {
     margin-bottom: 14px;
   `;
 
-  // REFERENCE LABEL
   const label = document.createElement("div");
 
   label.textContent = "YOUR ORDER REFERENCE";
@@ -311,7 +341,6 @@ function showOrderSuccess(reference) {
     letter-spacing: 1px;
   `;
 
-  // REFERENCE ROW
   const referenceRow = document.createElement("div");
 
   referenceRow.style.cssText = `
@@ -321,7 +350,6 @@ function showOrderSuccess(reference) {
     flex-wrap: wrap;
   `;
 
-  // ORDER ID BOX
   const referenceBox = document.createElement("div");
 
   referenceBox.textContent = String(reference);
@@ -343,7 +371,6 @@ function showOrderSuccess(reference) {
     text-align: center;
   `;
 
-  // COPY BUTTON
   const copyButton = document.createElement("button");
 
   copyButton.type = "button";
@@ -366,7 +393,6 @@ function showOrderSuccess(reference) {
     copyOrderReference(reference, copyButton);
   });
 
-  // INFORMATION TEXT
   const note = document.createElement("p");
 
   note.textContent =
@@ -379,7 +405,6 @@ function showOrderSuccess(reference) {
     margin: 14px 0 0;
   `;
 
-  // ADD ELEMENTS
   card.append(
     heading,
     divider,
@@ -507,12 +532,10 @@ if (orderForm) {
       );
 
       if (attachError) {
-        msg.textContent =
-          "Receipt Link Error: " + attachError.message;
+        msg.textContent = "Receipt Link Error: " + attachError.message;
         return;
       }
 
-      // SHOW NEW ORDER REFERENCE CARD
       showOrderSuccess(orderId);
 
       orderForm.reset();
