@@ -4,6 +4,23 @@ const $ = (id) => document.getElementById(id);
 const cfg = window.HEXA_CONFIG;
 const db = window.hexaSupabase;
 
+// USD CONVERSION RATE
+// Change this rate whenever required.
+const USD_PKR_RATE = 280;
+
+// FORMAT USD PRICE
+function getUsdPrice(pkrPrice) {
+  const amount = Number(pkrPrice);
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    return "USD unavailable";
+  }
+
+  const usd = amount / USD_PKR_RATE;
+
+  return "≈ $" + usd.toFixed(2) + " USD";
+}
+
 // START WEBSITE
 async function startApp() {
   const root = $("service-list");
@@ -141,10 +158,23 @@ async function loadServices() {
       description.className = "muted";
       description.textContent = service.description || "";
 
+      // PKR PRICE
       const price = document.createElement("strong");
       price.className = "price";
       price.textContent =
         "Rs. " + Number(service.price).toLocaleString("en-PK");
+
+      // USD PRICE
+      const usdPrice = document.createElement("small");
+      usdPrice.textContent = getUsdPrice(service.price);
+
+      usdPrice.style.cssText = `
+        display: block;
+        color: #16A34A;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 3px;
+      `;
 
       const duration = document.createElement("p");
       duration.className = "muted";
@@ -171,6 +201,7 @@ async function loadServices() {
         heading,
         description,
         price,
+        usdPrice,
         duration,
         button
       );
