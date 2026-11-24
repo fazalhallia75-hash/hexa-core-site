@@ -242,6 +242,120 @@ async function uploadServiceImage(file) {
   return data.path;
 }
 
+// ANNOUNCEMENT RIBBON
+async function loadAnnouncement() {
+  try {
+    const { data, error } = await db
+      .from("site_announcement")
+      .select("message, enabled")
+      .eq("id", 1)
+      .single();
+
+    if (error) throw error;
+
+    if ($("announcement-text")) {
+      $("announcement-text").value = data.message || "";
+    }
+
+    if ($("announcement-enabled")) {
+      $("announcement-enabled").checked = Boolean(data.enabled);
+    }
+
+    updateAnnouncementPreview();
+
+    showMessage("announcement-message", "");
+
+  } catch (err) {
+    console.error("Announcement Load Error:", err);
+    showMessage(
+      "announcement-message",
+      "Load Error: " + err.message
+    );
+  }
+}
+
+function updateAnnouncementPreview() {
+  const input = $("announcement-text");
+  const preview = $("announcement-preview");
+
+  if (input && preview) {
+    preview.textContent =
+      input.value.trim() || "YOUR ANNOUNCEMENT";
+  }
+}
+
+if ($("announcement-text")) {
+  $("announcement-text").addEventListener(
+    "input",
+    updateAnnouncementPreview
+  );
+}
+
+if ($("announcement-form")) {
+  $("announcement-form").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const button = $("announcement-form").querySelector(
+      'button[type="submit"]'
+    );
+
+    const message = $("announcement-text")?.value.trim() || "";
+    const enabled = $("announcement-enabled")?.checked || false;
+
+    if (!message) {
+      showMessage(
+        "announcement-message",
+        "Please enter an announcement message."
+      );
+      return;
+    }
+
+    if (!button) return;
+
+    button.disabled = true;
+    button.textContent = "SAVING...";
+
+    try {
+      const { data, error } = await db
+        .from("site_announcement")
+        .update({
+          message,
+          enabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", 1)
+        .select("id");
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error(
+          "Announcement was not saved. Check admin permissions."
+        );
+      }
+
+      showMessage(
+        "announcement-message",
+        "Announcement saved successfully!"
+      );
+
+      updateAnnouncementPreview();
+
+    } catch (err) {
+      console.error("Announcement Save Error:", err);
+
+      showMessage(
+        "announcement-message",
+        "Save Error: " + err.message
+      );
+
+    } finally {
+      button.disabled = false;
+      button.textContent = "SAVE ANNOUNCEMENT";
+    }
+  });
+}
+
 // SOUND
 function playOrderSound() {
   try {
@@ -261,12 +375,19 @@ function playOrderSound() {
       oscillator.type = "sine";
       oscillator.frequency.value = i === 1 ? 880 : 660;
 
-      gain.gain.setValueAtTime(0.001, audioContext.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(
-        0.18, audioContext.currentTime + delay + 0.03
+      gain.gain.setValueAtTime(
+        0.001,
+        audioContext.currentTime + delay
       );
+
       gain.gain.exponentialRampToValueAtTime(
-        0.001, audioContext.currentTime + delay + 0.18
+        0.18,
+        audioContext.currentTime + delay + 0.03
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + delay + 0.18
       );
 
       oscillator.connect(gain);
@@ -275,6 +396,7 @@ function playOrderSound() {
       oscillator.start(audioContext.currentTime + delay);
       oscillator.stop(audioContext.currentTime + delay + 0.2);
     });
+
   } catch (err) {
     console.error("Sound error:", err);
   }
@@ -283,8 +405,10 @@ function playOrderSound() {
 function notifyNewOrder(order) {
   playOrderSound();
 
-  if ("Notification" in window &&
-      Notification.permission === "granted") {
+  if (
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
     new Notification("HEXA CORE — New Order", {
       body: `${order.service_name} · ${order.customer_name}`,
       tag: order.id
@@ -304,8 +428,10 @@ async function enableNotifications() {
     if (audioContext?.state === "suspended") {
       await audioContext.resume();
     }
+
     playOrderSound();
     alert("Notifications enabled.");
+
   } else {
     alert("Please allow notifications in browser settings.");
   }
@@ -430,6 +556,7 @@ async function loadServices() {
         if (error) throw error;
 
         await loadServices();
+
       } catch (err) {
         alert("Service Error: " + err.message);
         b.disabled = false;
@@ -458,13 +585,21 @@ if ($("service-image")) {
     }
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      showMessage("service-message", "Only JPG, PNG and WEBP images are allowed.");
+      showMessage(
+        "service-message",
+        "Only JPG, PNG and WEBP images are allowed."
+      );
+
       $("service-image").value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      showMessage("service-message", "Image size must be 5 MB or less.");
+      showMessage(
+        "service-message",
+        "Image size must be 5 MB or less."
+      );
+
       $("service-image").value = "";
       return;
     }
@@ -484,7 +619,9 @@ async function loadOrders() {
     .limit(100);
 
   if (error) {
-    $("orders-list").textContent = "Orders Error: " + error.message;
+    $("orders-list").textContent =
+      "Orders Error: " + error.message;
+
     console.error("Orders error:", error);
     return;
   }
@@ -587,11 +724,14 @@ async function loadOrders() {
         if (error) throw error;
 
         if (!data?.length) {
-          throw new Error("Order was not updated. Refresh and check its status.");
+          throw new Error(
+            "Order was not updated. Refresh and check its status."
+          );
         }
 
         alert("Order accepted.");
         await refresh();
+
       } catch (err) {
         alert("Accept Error: " + err.message);
         b.disabled = false;
@@ -610,7 +750,9 @@ async function loadOrders() {
   // RECEIPT
   $("orders-list").querySelectorAll("[data-receipt]").forEach(b => {
     b.onclick = async () => {
-      const order = currentOrders.find(x => x.id === b.dataset.receipt);
+      const order = currentOrders.find(
+        x => x.id === b.dataset.receipt
+      );
 
       if (!order?.receipt_path) {
         alert("No receipt attached.");
@@ -642,10 +784,13 @@ async function loadOrders() {
 
       try {
         if (!key || !link) {
-          throw new Error("Please enter both KEY and MediaFire link.");
+          throw new Error(
+            "Please enter both KEY and MediaFire link."
+          );
         }
 
         let parsed;
+
         try {
           parsed = new URL(link);
         } catch {
@@ -657,7 +802,9 @@ async function loadOrders() {
           parsed.hostname.endsWith(".mediafire.com");
 
         if (parsed.protocol !== "https:" || !validHost) {
-          throw new Error("Please enter a valid HTTPS MediaFire link.");
+          throw new Error(
+            "Please enter a valid HTTPS MediaFire link."
+          );
         }
 
         if (!confirm("Deliver this order to the customer now?")) return;
@@ -665,7 +812,9 @@ async function loadOrders() {
         b.disabled = true;
         b.textContent = "DELIVERING...";
 
-        if (message) message.textContent = "Saving delivery...";
+        if (message) {
+          message.textContent = "Saving delivery...";
+        }
 
         const { data, error } = await db.from("orders")
           .update({
@@ -690,9 +839,13 @@ async function loadOrders() {
           throw new Error("Delivery status could not be confirmed.");
         }
 
-        if (message) message.textContent = "Delivery saved successfully.";
+        if (message) {
+          message.textContent = "Delivery saved successfully.";
+        }
 
-        alert("Order delivered successfully. Customer can now track it.");
+        alert(
+          "Order delivered successfully. Customer can now track it."
+        );
 
         await refresh();
 
@@ -743,7 +896,8 @@ async function loadFeedback() {
     .limit(100);
 
   if (error) {
-    $("feedback-list").textContent = "Feedback Error: " + error.message;
+    $("feedback-list").textContent =
+      "Feedback Error: " + error.message;
     return;
   }
 
@@ -758,6 +912,7 @@ async function loadFeedback() {
           ${new Date(f.created_at).toLocaleString()}
         </small>
       </div>
+
       <button class="btn danger" data-delete-feedback="${esc(f.id)}">
         DELETE
       </button>
@@ -819,15 +974,20 @@ async function checkSession() {
 
   if (!document.getElementById("notification-enable")) {
     const button = document.createElement("button");
+
     button.id = "notification-enable";
     button.className = "btn secondary";
     button.textContent = "ENABLE NOTIFICATIONS + RINGTONE";
+
     $("dashboard").prepend(button);
   }
 
   $("notification-enable").onclick = enableNotifications;
 
   await refresh();
+
+  // LOAD ANNOUNCEMENT SETTINGS
+  await loadAnnouncement();
 
   if (!orderPollingStarted) {
     orderPollingStarted = true;
@@ -875,6 +1035,7 @@ $("service-form").onsubmit = async e => {
     if (imageFile) {
       showMessage("service-message", "Uploading image...");
       payload.image_path = await uploadServiceImage(imageFile);
+
     } else if (!id) {
       payload.image_path = null;
     }
@@ -887,14 +1048,21 @@ $("service-form").onsubmit = async e => {
 
     if (result.error) throw result.error;
 
-    showMessage("service-message", "Service saved successfully.");
+    showMessage(
+      "service-message",
+      "Service saved successfully."
+    );
 
     resetServiceForm();
     await refresh();
 
   } catch (err) {
     console.error("Service save error:", err);
-    showMessage("service-message", "Service Error: " + err.message);
+
+    showMessage(
+      "service-message",
+      "Service Error: " + err.message
+    );
 
   } finally {
     submitButton.disabled = false;
