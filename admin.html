@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -15,7 +16,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=2"></script>
-  <script defer src="admin.js?v=6"></script>
+  <script defer src="admin.js?v=7"></script>
 </head>
 
 <body>
@@ -39,11 +40,15 @@
 
 <main class="wrap">
 
+  <!-- ADMIN HERO -->
+
   <section class="hero compact">
     <p class="eyebrow">PRIVATE AREA</p>
     <h1>HEXA CORE</h1>
     <p>ADMIN CONTROL PANEL</p>
   </section>
+
+  <!-- LOGIN -->
 
   <section class="panel" id="login-panel">
 
@@ -80,6 +85,8 @@
 
   </section>
 
+  <!-- DASHBOARD -->
+
   <div id="dashboard" hidden>
 
     <div class="section-head">
@@ -92,6 +99,8 @@
         LOG OUT
       </button>
     </div>
+
+    <!-- ADD / UPDATE SERVICE -->
 
     <section class="panel">
 
@@ -176,6 +185,90 @@
 
     </section>
 
+    <!-- ANNOUNCEMENT RIBBON -->
+
+    <section class="panel" id="announcement-panel">
+
+      <h2>Announcement Ribbon</h2>
+
+      <p class="muted">
+        Manage the message displayed at the top of your homepage.
+      </p>
+
+      <form id="announcement-form">
+
+        <label>
+          Announcement Message
+
+          <input
+            id="announcement-text"
+            type="text"
+            maxlength="100"
+            placeholder="e.g. 50% DISCOUNT — LIMITED OFFER"
+            required>
+        </label>
+
+        <!-- RIBBON PREVIEW -->
+
+        <div
+          id="announcement-preview-box"
+          style="
+            background:#064E3B;
+            color:#ffffff;
+            padding:7px 10px;
+            text-align:center;
+            border-radius:8px;
+            margin:12px 0;
+            overflow:hidden;
+          ">
+
+          <span
+            id="announcement-preview"
+            style="
+              font-size:12px;
+              font-weight:700;
+              color:#ffffff;
+            ">
+            50% DISCOUNT — LIMITED OFFER
+          </span>
+
+        </div>
+
+        <!-- ENABLE / DISABLE -->
+
+        <label style="
+          display:flex;
+          align-items:center;
+          gap:10px;
+        ">
+
+          <input
+            id="announcement-enabled"
+            type="checkbox"
+            checked
+            style="width:auto;">
+
+          Enable Announcement Ribbon
+
+        </label>
+
+        <button
+          class="btn"
+          type="submit">
+          SAVE ANNOUNCEMENT
+        </button>
+
+        <p
+          id="announcement-message"
+          class="message">
+        </p>
+
+      </form>
+
+    </section>
+
+    <!-- CUSTOMER ORDERS -->
+
     <section class="panel">
 
       <h2>Customer Orders</h2>
@@ -189,6 +282,8 @@
       </div>
 
     </section>
+
+    <!-- CUSTOMER FEEDBACK -->
 
     <section class="panel">
 
@@ -204,8 +299,11 @@
 
 </main>
 
+<!-- FOOTER -->
+
 <footer>
   <p>HEXA CORE · Admin access only</p>
+
   <div>
     <a href="index.html">Home</a> |
     <a href="services.html">All Services</a> |
