@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,6 +7,7 @@
 
   <title>HEXA CORE — Digital Services</title>
 
+  <!-- (style.css and external links remain unchanged) -->
   <link rel="stylesheet" href="style.css?v=17">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,99 @@
 
     .announcement-ribbon[hidden] {
       display: none !important;
+    }
+
+    /* ── payment details block (new) ── */
+    .payment-details {
+      margin: 1.2rem 0 1.8rem;
+      background: #f8f9fc;
+      border-radius: 16px;
+      padding: 1.1rem 1.3rem;
+      border: 1px solid #e9ecf0;
+    }
+
+    .payment-details h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .payment-details h3 span {
+      background: #064E3B;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 1.8rem;
+    }
+
+    .payment-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .payment-item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .payment-item .value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      word-break: break-word;
+      background: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      display: inline-block;
+      width: fit-content;
+      min-width: 120px;
+    }
+
+    .payment-item .value small {
+      font-weight: 400;
+      font-size: 0.75rem;
+      color: #475569;
+      margin-left: 6px;
+    }
+
+    /* account name highlight */
+    .payment-item .account-name {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #1e3a8a;
+      font-weight: 700;
+    }
+
+    @media (max-width: 540px) {
+      .payment-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+      }
+      .payment-item .value {
+        width: 100%;
+      }
+    }
+
+    /* keep old .payment style for backward compatibility – but we hide it */
+    .payment.old-payment {
+      display: none;
     }
   </style>
 
@@ -113,18 +206,51 @@
       Select a service above to complete your order.
     </p>
 
-    <div class="payment">
+    <!-- ── NEW PAYMENT DETAILS BLOCK ── -->
+    <div class="payment-details">
+      <h3>
+        Payment Details
+        <span>BOTH</span>
+      </h3>
 
+      <div class="payment-grid">
+
+        <!-- JAZZCASH -->
+        <div class="payment-item">
+          <span class="label">JazzCash Account Name</span>
+          <span class="value account-name">SHAZIA SHAMSHAIR</span>
+        </div>
+
+        <div class="payment-item">
+          <span class="label">JazzCash Number</span>
+          <span class="value">03236022445</span>
+        </div>
+
+        <!-- BINANCE -->
+        <div class="payment-item">
+          <span class="label">Binance Account Name</span>
+          <span class="value account-name">SHAZIA SHAMSHAIR</span>
+        </div>
+
+        <div class="payment-item">
+          <span class="label">Binance UID</span>
+          <span class="value">1257624218</span>
+        </div>
+
+      </div>
+    </div>
+    <!-- ── END NEW PAYMENT DETAILS ── -->
+
+    <!-- old payment block hidden (kept for app.js compatibility) -->
+    <div class="payment old-payment" style="display:none;">
       <div>
         <span class="muted">JazzCash account name</span>
-        <strong id="pay-name"></strong>
+        <strong id="pay-name">SHAZIA SHAMSHAIR</strong>
       </div>
-
       <div>
         <span class="muted">JazzCash number</span>
-        <strong id="pay-number"></strong>
+        <strong id="pay-number">03236022445</strong>
       </div>
-
     </div>
 
     <form id="order-form">
